@@ -18,7 +18,7 @@ def Kmeans(k,filename, max_iter=200):
 # def read_data(filename):
 #     with open (filename, rb) as f:
 #         for line in f.readlines():
-#             data_points = np.array(line.rstrip().split(','))
+#             data_points.append(np.array(line))
 #     return data_points
 
 
