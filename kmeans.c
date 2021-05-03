@@ -24,6 +24,7 @@ int main(int argc, char const *argv[])
     }
     fillVectors(stdin, vectors, k, n);
     return 0;
+    
 }
 
 int num_of_lines(FILE *fp){
