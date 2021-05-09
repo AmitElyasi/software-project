@@ -228,7 +228,7 @@ int main( int argc, char* argv[]) {
 
 
     float** data_points = read_data(stdin, n, m);
-    float** centroids = kmeans(k, data_points, max_iter, m);
+    float** centroids = kmeans(k, data_points, max_iter);
     print_centroids(centroids, k, m);
 
 }
