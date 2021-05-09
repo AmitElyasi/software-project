@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 /*
  * implementations of kmeans algorithm
  */
 float** kmeans(int k, float** data_points ,int max_iter){
-    void assign(float**, float** );
+    void assign(float**, float**, int);
     void re_estimate(float**, float** );
     float** clusters = built_clusters(int, int, float**);
     
@@ -17,11 +18,35 @@ float** kmeans(int k, float** data_points ,int max_iter){
  * assigns data points to their closest cluster (measure distance from the centroid)
  * updates the number of cluster for each data point
  */
-void assign(float** data_points, float** clusters){
-    //TODO
+void assign(float** data_points, float** clusters, int dim){
+    int cluster;
+    float distance(float *, float *, int);
+
+    float min_dis = INT_MAX;
+    for(int v = 0; v < sizeof(data_points); v++){
+        for(int c = 0;c < sizeof(clusters); c++){
+            float dis = distance(data_points[v], clusters[c], dim);
+            if( dis < min_dis){
+                min_dis = dis;
+                cluster = c;
+            }
+        }
+        data_points[v][dim] = cluster;
+        min_dis = INT_MAX;
+    }
 }
 
+/*
+* calculate distance between two vectors (v1-v2)^2
+*/
+float distance(float *v1, float *v2, int dim){
+    float result = 0;
+    for(int i = 0;i < dim;i++){
+        result += pow(v1[i]-v2[i], 2);
+    }
 
+    return result;
+} 
 /*
  * re-estimates a centroid for each cluster:
  * for each cluster calculate the average of the points assign to it,
@@ -29,6 +54,15 @@ void assign(float** data_points, float** clusters){
  */
 void re_estimate(float** data_points, float** clusters){
     //TODO
+}
+
+/*
+ * adds vec2 to vec1 coordinate wise
+ */
+void vec_sum(float* vec1, float* vec2, int dim){
+    for(int i = 0;i < dim;i++){
+        vec1[i] += vec2[i];
+    }
 }
 
 
@@ -128,8 +162,13 @@ float ** build_clusters(int k, int m, float **vectors){
 /*
  * prints the centroids in the template requierd
  */
-void print_centroids(float** clusters){
-    //TODO
+void print_centroids(float** clusters, int k, int dim){
+    for(int i = 0; i < k;i++){
+        for(int j = 0;j < dim-1;j++){
+            printf("%0.4f,", clusters[i][j]);
+        }
+        printf("%.4f\n", clusters[i][dim-1]);
+    }
 }
 
 
@@ -151,6 +190,6 @@ int main() {
     float** data_points = read_data(stdin);
     
     float** centroids = kmeans(k, data_points, max_iter);
-    print_centroids(centroids);            
+    print_centroids(centroids, k, dim);            
     
 }
