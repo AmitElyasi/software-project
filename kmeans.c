@@ -1,50 +1,118 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+
 
 /*
  * implementations of kmeans algorithm
  */
 float** kmeans(int k, float** data_points ,int max_iter){
-    void assign(float**, float** );
-    void re_estimate(float**, float** );
-    float** clusters = built_clusters(int, int, float**);
-    
-    //TODO
+    int dim = sizeof(data_points[0])-1;
+    void assign(float**, float** ,int);
+    void re_estimate(float**, float** ,int);
+    float** built_clusters(int, int, float**);
+
+    float** clusters = built_clusters(k, dim, data_points);
+    for (int i=0; i<max_iter; i++){
+        assign(data_points, clusters, dim);
+        re_estimate(data_points, clusters, dim);
     }
+    return clusters;
+}
 
 
 /*
  * assigns data points to their closest cluster (measure distance from the centroid)
  * updates the number of cluster for each data point
  */
-void assign(float** data_points, float** clusters){
-    //TODO
+void assign(float** data_points, float** clusters, int dim){
+    int cluster;
+    float distance(float *, float *, int);
+
+    float min_dis = INT_MAX;
+    for(int v = 0; v < sizeof(data_points); v++){
+        for(int c = 0;c < sizeof(clusters); c++){
+            float dis = distance(data_points[v], clusters[c], dim);
+            if( dis < min_dis){
+                min_dis = dis;
+                cluster = c;
+            }
+        }
+        data_points[v][dim] = cluster;
+        min_dis = INT_MAX;
+    }
+}
+
+
+/*
+* calculate distance between two vectors (v1-v2)^2
+*/
+float distance(float *v1, float *v2, int dim){
+    float result = 0;
+    for(int i = 0;i < dim;i++){
+        result += pow(v1[i]-v2[i], 2);
+    }
+
+    return result;
+}
+
+
+/*
+ * adds vec2 to vec1 coordinate wise
+ */
+void vec_sum(float* vec1, float* vec2, int dim){
+    for(int i = 0;i < dim;i++){
+        vec1[i] += vec2[i];
+    }
 }
 
 
 /*
  * re-estimates a centroid for each cluster:
  * for each cluster calculate the average of the points assign to it,
- *  updates centroids to be the average vector
+ * updates centroids to be the average vector
  */
-void re_estimate(float** data_points, float** clusters){
-    //TODO
+void re_estimate(float** data_points, float** clusters, int dim){
+    int n = sizeof(data_points), j, k=sizeof(clusters);
+    void vec_sum(float*, float*, int);
+    void zero_mat(float** );
+
+    zero_mat(clusters);
+
+    for(int i=0; i<n ; i++){
+        j = data_points[i][dim+1];
+        vec_sum(clusters[j], data_points[i], dim);
+        clusters[j][dim]++;
+    }
+
+    for (int i=0; i < k ; i++){
+        for(int j=0; j<dim; j++){
+            clusters[i][j] = clusters[i][j]/clusters[i][dim];
+        }
+    }
 }
 
 
-float** read_data(FILE* fp){
-    int n,m;
+/*
+ * zeros the cluster matrix
+ */
+void zero_mat(float** clusters){
+    int k=sizeof(clusters), dim=sizeof(clusters[0]);
+    for(int i=0; i<k; i++){
+        for(int j=0; j<dim; j++){
+            clusters[i][j]=0;
+        }
+    }
+}
+
+
+
+float** read_data(FILE* fp, int n, int m){
     long int bOfFile;
     float ** centroids;
     int num_of_columns(FILE *);
     int num_of_lines(FILE *);
     void fillVectors(FILE *, float **, int , int);
-
-    bOfFile = ftell(stdin);/*save the address of the begining of the file */
-    n = num_of_lines(stdin);
-    fseek(stdin, bOfFile, SEEK_SET);/*set the file postion back to the begining */
-    m = num_of_columns(stdin);
-    fseek(stdin, bOfFile, SEEK_SET);/*set the file postion back to the begining */
 
     /* build matrix that contins all the points */
     float **vectors = (float **) malloc(sizeof(float *) * n);
@@ -56,9 +124,9 @@ float** read_data(FILE* fp){
     return vectors;
 }
 
-/* 
+/*
  * counts the lines in input file
- */ 
+ */
 int num_of_lines(FILE *fp){
     int ch;
     int lines = 0;
@@ -128,29 +196,39 @@ float ** build_clusters(int k, int m, float **vectors){
 /*
  * prints the centroids in the template requierd
  */
-void print_centroids(float** clusters){
-    //TODO
+void print_centroids(float** clusters, int k, int dim){
+    for(int i = 0; i < k;i++){
+        for(int j = 0;j < dim-1;j++){
+            printf("%0.4f,", clusters[i][j]);
+        }
+        printf("%.4f\n", clusters[i][dim-1]);
+    }
 }
 
 
-int main() {
-    float** kmeans(int, float ,int );
-    float** read_data(FILE*);
+int main( int argc, char* argv[]) {
+    float** kmeans(int, float** ,int );
+    float** read_data(FILE*, int, int );
+    void print_centroids(float**, int, int);
     int max_iter;
-    
-    /*
-     * reading arguments
-     */
+
+    /* reading arguments */
     int k = strtol(argv[1], NULL, 10);
     if(argc == 3){
         max_iter = strtol(argv[2], NULL, 10);
     }
     else{
-        max_iter = 200; 
-    } 
-    float** data_points = read_data(stdin);
-    
-    float** centroids = kmeans(k, data_points, max_iter);
-    print_centroids(centroids);            
-    
+        max_iter = 200;
+    }
+    long bOfFile = ftell(stdin);/*save the address of the beginning of the file */
+    int n = num_of_lines(stdin);
+    fseek(stdin, bOfFile, SEEK_SET);/*set the file position back to the beginning */
+    int m = num_of_columns(stdin);
+    fseek(stdin, bOfFile, SEEK_SET);/*set the file position back to the beginning */
+
+
+    float** data_points = read_data(stdin, n, m);
+    float** centroids = kmeans(k, data_points, max_iter, m);
+    print_centroids(centroids, k, m);
+
 }
