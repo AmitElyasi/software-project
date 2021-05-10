@@ -276,6 +276,7 @@ int main( int argc, char* argv[]) {
             return 1;
         }
     }
+
     else{
         max_iter = 200;
     }
