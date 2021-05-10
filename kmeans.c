@@ -50,7 +50,7 @@ void assign(float** data_points, float** clusters, int dim, int n, int k){
     int v,c;
     float min_dist, dis;
 
-    min_dis = INT_MAX;
+    int min_dis = INT_MAX;
     for(v = 0; v < n; v++){
         for(c = 0;c < k; c++){
             dis = distance(data_points[v], clusters[c], dim);
@@ -170,7 +170,7 @@ float** read_data(FILE* fp, int n, int dim){
     for(i = 0; i < n; i++){
         vectors[i] = (float *) malloc(sizeof(float) * (dim+1));
     }
-    fillVectors(stdin, vectors, dim, n);
+    fillVectors(fp, vectors, dim, n);
 
     return vectors;
 }
@@ -223,7 +223,7 @@ void fillVectors(FILE *fp, float **vectors, int dim, int n){
     for(i = 0; i < n; i++){
 
         /* p is a pointer to a beging of a line in the file */
-        p = fgets(line, size, stdin);
+        p = fgets(line, size, fp);
 
         for(j = 0; j < dim; j++){
 
@@ -276,9 +276,10 @@ int main( int argc, char* argv[]) {
     float** kmeans(int, float** , int, int, int);
     float** read_data(FILE*, int, int );
     void print_centroids(float**, int, int);
-    int max_iter, i, j, dim, k, n;
-    long bOfFile
-    float** data_points, centroids;
+    int max_iter, i, dim, k, n;
+    long bOfFile;
+    float **data_points;
+    float **centroids;
 
     /* reading arguments */
     k = strtol(argv[1], NULL, 10);
