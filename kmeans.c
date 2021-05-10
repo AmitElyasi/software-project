@@ -259,19 +259,6 @@ void print_centroids(float** clusters, int k, int dim){
 }
 
 
-/*
- * (just for tests)
- * prints the new centroids (before coping them in the template requierd
- */
-void print_new_centroids(float** clusters, int k, int dim){
-    for(int i = k; i < 2*k;i++){
-        for(int j = 0;j < dim-1;j++){
-            printf("%0.4f,", clusters[i][j]);
-        }
-        printf("%.4f\n", clusters[i][dim-1]);
-    }
-}
-
 
 int main( int argc, char* argv[]) {
     float** kmeans(int, float** , int, int, int);
