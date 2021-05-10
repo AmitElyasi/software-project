@@ -48,9 +48,9 @@ void assign(float** data_points, float** clusters, int dim, int n, int k){
     int cluster;
     float distance(float *, float *, int);
     int v,c;
-    float min_dist, dis;
+    float min_dis, dis;
 
-    int min_dis = INT_MAX;
+    min_dis = INT_MAX;
     for(v = 0; v < n; v++){
         for(c = 0;c < k; c++){
             dis = distance(data_points[v], clusters[c], dim);
@@ -327,4 +327,6 @@ int main( int argc, char* argv[]) {
         free(centroids[i]);
     }
     free(centroids);
+
+    return 0;
 }
