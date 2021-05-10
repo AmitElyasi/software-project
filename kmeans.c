@@ -3,6 +3,7 @@
 #include <math.h>
 
 
+
 /*
  * implementations of kmeans algorithm
  */
@@ -50,7 +51,7 @@ void assign(float** data_points, float** clusters, int dim, int n, int k){
 float distance(float *v1, float *v2, int dim){
     float result = 0;
     for(int i = 0;i < dim;i++){
-        result += pow(v1[i]-v2[i], 2);
+        result += (v1[i]-v2[i])*(v1[i]-v2[i]);
     }
 
     return result;
@@ -221,6 +222,11 @@ int main( int argc, char* argv[]) {
     }
     long bOfFile = ftell(stdin);/*save the address of the beginning of the file */
     int n = num_of_lines(stdin);
+    if(n < k){
+        printf("INPUT ERROR:\nthere are less then k=%d data points",k);
+    }
+
+
     fseek(stdin, bOfFile, SEEK_SET);/*set the file position back to the beginning */
     int m = num_of_columns(stdin);
     fseek(stdin, bOfFile, SEEK_SET);/*set the file position back to the beginning */
@@ -230,4 +236,14 @@ int main( int argc, char* argv[]) {
     float** centroids = kmeans(k, data_points, max_iter, m, n);
     print_centroids(centroids, k, m);
 
+    for(int i = 0;i < n;i++){
+        free(data_points[i]);
+        if(i< k){
+            free(centroids[i]);
+        }
+    }
+    free(data_points);
+    free(centroids);
+
 }
+
