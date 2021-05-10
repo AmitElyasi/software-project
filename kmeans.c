@@ -25,8 +25,9 @@ float** kmeans(int k, float** data_points ,int max_iter, int dim, int n){
     short re_estimate(float**, float** ,int, int, int);
     float** build_clusters(int, int, float**);
     int i;
+    float** clusters;
 
-    float** clusters = build_clusters(k, dim, data_points);
+    clusters = build_clusters(k, dim, data_points);
     for (i=0; i<max_iter; i++){
         assign(data_points, clusters, dim, n, k);
         convergece = re_estimate(data_points, clusters, dim, n, k);
@@ -47,11 +48,12 @@ void assign(float** data_points, float** clusters, int dim, int n, int k){
     int cluster;
     float distance(float *, float *, int);
     int v,c;
+    float min_dist, dis;
 
-    float min_dis = INT_MAX;
+    min_dis = INT_MAX;
     for(v = 0; v < n; v++){
         for(c = 0;c < k; c++){
-            float dis = distance(data_points[v], clusters[c], dim);
+            dis = distance(data_points[v], clusters[c], dim);
             if( dis <= min_dis){
                 min_dis = dis;
                 cluster = c;
@@ -161,9 +163,10 @@ float** read_data(FILE* fp, int n, int dim){
     int num_of_columns(FILE *);
     int num_of_lines(FILE *);
     void fillVectors(FILE *, float **, int , int);
+    float **vectors;
 
     /* build matrix that contins all the points */
-    float **vectors = (float **) malloc(sizeof(float *) * n);
+    vectors = (float **) malloc(sizeof(float *) * n);
     for(i = 0; i < n; i++){
         vectors[i] = (float *) malloc(sizeof(float) * (dim+1));
     }
@@ -238,6 +241,7 @@ void fillVectors(FILE *fp, float **vectors, int dim, int n){
 float ** build_clusters(int k, int dim, float **vectors){
     int i, j;
     float **centroid;
+
     centroid = (float **) malloc(sizeof(float *) * 2 * k);
 
     for(i = 0; i < k; i++){
@@ -272,10 +276,12 @@ int main( int argc, char* argv[]) {
     float** kmeans(int, float** , int, int, int);
     float** read_data(FILE*, int, int );
     void print_centroids(float**, int, int);
-    int max_iter, i, j;
+    int max_iter, i, j, dim, k, n;
+    long bOfFile
+    float** data_points, centroids;
 
     /* reading arguments */
-    int k = strtol(argv[1], NULL, 10);
+    k = strtol(argv[1], NULL, 10);
     if(argc == 3){
         max_iter = strtol(argv[2], NULL, 10);
 
@@ -288,8 +294,8 @@ int main( int argc, char* argv[]) {
     else{
         max_iter = 200;
     }
-    long bOfFile = ftell(stdin);/*save the address of the beginning of the file */
-    int n = num_of_lines(stdin);
+    bOfFile = ftell(stdin);/*save the address of the beginning of the file */
+    n = num_of_lines(stdin);
 
     if(k<=0){
         printf("INPUT ERROR:\nk is invalid");
@@ -301,12 +307,12 @@ int main( int argc, char* argv[]) {
     }
 
     fseek(stdin, bOfFile, SEEK_SET);/*set the file position back to the beginning */
-    int dim = num_of_columns(stdin);
+    dim = num_of_columns(stdin);
     fseek(stdin, bOfFile, SEEK_SET);/*set the file position back to the beginning */
 
 
-    float** data_points = read_data(stdin, n, dim);
-    float** centroids = kmeans(k, data_points, max_iter, dim, n);
+    data_points = read_data(stdin, n, dim);
+    centroids = kmeans(k, data_points, max_iter, dim, n);
     print_centroids(centroids, k, dim);
 
 
