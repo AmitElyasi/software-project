@@ -6,16 +6,16 @@
 /*
  * implementations of kmeans algorithm
  */
-float** kmeans(int k, float** data_points ,int max_iter){
-    int dim = sizeof(data_points[0])-1;
-    void assign(float**, float** ,int);
-    void re_estimate(float**, float** ,int);
-    float** built_clusters(int, int, float**);
+float** kmeans(int k, float** data_points ,int max_iter, int dim, int n){
 
-    float** clusters = built_clusters(k, dim, data_points);
+    void assign(float**, float** ,int, int, int);
+    void re_estimate(float**, float** ,int, int, int);
+    float** build_clusters(int, int, float**);
+
+    float** clusters = build_clusters(k, dim, data_points);
     for (int i=0; i<max_iter; i++){
-        assign(data_points, clusters, dim);
-        re_estimate(data_points, clusters, dim);
+        assign(data_points, clusters, dim, n, k);
+        re_estimate(data_points, clusters, dim, n, k);
     }
     return clusters;
 }
@@ -25,15 +25,15 @@ float** kmeans(int k, float** data_points ,int max_iter){
  * assigns data points to their closest cluster (measure distance from the centroid)
  * updates the number of cluster for each data point
  */
-void assign(float** data_points, float** clusters, int dim){
+void assign(float** data_points, float** clusters, int dim, int n, int k){
     int cluster;
     float distance(float *, float *, int);
 
     float min_dis = INT_MAX;
-    for(int v = 0; v < sizeof(data_points); v++){
-        for(int c = 0;c < sizeof(clusters); c++){
+    for(int v = 0; v < n; v++){
+        for(int c = 0;c < k; c++){
             float dis = distance(data_points[v], clusters[c], dim);
-            if( dis < min_dis){
+            if( dis <= min_dis){
                 min_dis = dis;
                 cluster = c;
             }
@@ -72,15 +72,15 @@ void vec_sum(float* vec1, float* vec2, int dim){
  * for each cluster calculate the average of the points assign to it,
  * updates centroids to be the average vector
  */
-void re_estimate(float** data_points, float** clusters, int dim){
-    int n = sizeof(data_points), j, k=sizeof(clusters);
+void re_estimate(float** data_points, float** clusters, int dim, int n, int k){
+    int j;
     void vec_sum(float*, float*, int);
-    void zero_mat(float** );
+    void zero_mat(float**, int, int);
 
-    zero_mat(clusters);
+    zero_mat(clusters, dim, k);
 
     for(int i=0; i<n ; i++){
-        j = data_points[i][dim+1];
+        j = data_points[i][dim];
         vec_sum(clusters[j], data_points[i], dim);
         clusters[j][dim]++;
     }
@@ -96,10 +96,9 @@ void re_estimate(float** data_points, float** clusters, int dim){
 /*
  * zeros the cluster matrix
  */
-void zero_mat(float** clusters){
-    int k=sizeof(clusters), dim=sizeof(clusters[0]);
+void zero_mat(float** clusters , int dim , int k){
     for(int i=0; i<k; i++){
-        for(int j=0; j<dim; j++){
+        for(int j=0; j<=dim; j++){
             clusters[i][j]=0;
         }
     }
@@ -165,7 +164,7 @@ int num_of_columns(FILE *fp){
 /* fill given matrix with the data from input file */
 void fillVectors(FILE *fp, float **vectors, int m, int n){
     char *p;
-    int size = 8 * m ;
+    int size = 50 * m ;
     char *line = malloc(sizeof(char) * size);
 
     for(int i = 0; i < n; i++){
@@ -207,7 +206,7 @@ void print_centroids(float** clusters, int k, int dim){
 
 
 int main( int argc, char* argv[]) {
-    float** kmeans(int, float** ,int );
+    float** kmeans(int, float** , int, int, int);
     float** read_data(FILE*, int, int );
     void print_centroids(float**, int, int);
     int max_iter;
@@ -228,7 +227,7 @@ int main( int argc, char* argv[]) {
 
 
     float** data_points = read_data(stdin, n, m);
-    float** centroids = kmeans(k, data_points, max_iter);
+    float** centroids = kmeans(k, data_points, max_iter, m, n);
     print_centroids(centroids, k, m);
 
 }
