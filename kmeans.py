@@ -9,7 +9,6 @@ Nizan Shemi
 206962912
 """
 
-import math
 import sys
 
 
@@ -140,11 +139,31 @@ def scalar_div(vec, x):
 
 def main():
 
+    try:
+        k = int(sys.argv[1])    
+        if (k <= 0):
+            print("INPUT ERROR:\nk can't be <= 0")
+            return 1
+    except ValueError:
+        print("INPUT ERROR:\nk can't be a letter")
+        return 1
+
     # algorithm
     if len(sys.argv) >= 3:
-        centroids = Kmeans(int(sys.argv[1]), max_iter=int(sys.argv[2]))
+        try:
+            max_iter = int(sys.argv[2])    
+
+        except ValueError:
+            print("INPUT ERROR:\nk can't be a letter")
+            return 1
+    
+        if max_iter <= 0:
+            print("INPUT ERROR:\nmax iteration can't be <= 0")
+            return 1
+
+        centroids = Kmeans(k, max_iter=max_iter)
     else:
-        centroids = Kmeans(int(sys.argv[1]))
+        centroids = Kmeans(k)
 
     # print in the right format
     for j,centroid in enumerate(centroids):

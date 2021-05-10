@@ -272,7 +272,7 @@ int main( int argc, char* argv[]) {
         max_iter = strtol(argv[2], NULL, 10);
 
         if (max_iter<=0){
-            printf("INPUT ERROR:\nmaximum iterations can't be <= 0");
+            printf("INPUT ERROR:\nmaximum iterations is invalid");
             return 1;
         }
     }
@@ -283,7 +283,7 @@ int main( int argc, char* argv[]) {
     int n = num_of_lines(stdin);
 
     if(k<=0){
-        printf("INPUT ERROR:\nk can't be <= 0");
+        printf("INPUT ERROR:\nk is invalid");
         return 1;
     }
     if(n < k){
