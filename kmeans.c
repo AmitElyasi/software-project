@@ -270,6 +270,11 @@ int main( int argc, char* argv[]) {
     int k = strtol(argv[1], NULL, 10);
     if(argc == 3){
         max_iter = strtol(argv[2], NULL, 10);
+
+        if (max_iter<=0){
+            printf("INPUT ERROR:\nmaximum iterations can't be <= 0");
+            return 1;
+        }
     }
     else{
         max_iter = 200;
@@ -277,8 +282,13 @@ int main( int argc, char* argv[]) {
     long bOfFile = ftell(stdin);/*save the address of the beginning of the file */
     int n = num_of_lines(stdin);
 
+    if(k<=0){
+        printf("INPUT ERROR:\nk can't be <= 0");
+        return 1;
+    }
     if(n < k){
         printf("INPUT ERROR:\nthere are less then k=%d data points",k);
+        return 1;
     }
 
     fseek(stdin, bOfFile, SEEK_SET);/*set the file position back to the beginning */
