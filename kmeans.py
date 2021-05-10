@@ -1,3 +1,14 @@
+"""
+Kmeans implementation in Python
+Software Project ex. 1
+
+Amit Elyasi
+316291434
+
+Nizan Shemi
+206962912
+"""
+
 import math
 import sys
 
