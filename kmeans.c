@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+
 
 
 /*
@@ -223,6 +225,8 @@ int main( int argc, char* argv[]) {
     if(n < k){
         printf("INPUT ERROR:\nthere are less then k=%d data points",k);
     }
+
+
     fseek(stdin, bOfFile, SEEK_SET);/*set the file position back to the beginning */
     int m = num_of_columns(stdin);
     fseek(stdin, bOfFile, SEEK_SET);/*set the file position back to the beginning */
@@ -231,6 +235,7 @@ int main( int argc, char* argv[]) {
     float** data_points = read_data(stdin, n, m);
     float** centroids = kmeans(k, data_points, max_iter, m, n);
     print_centroids(centroids, k, m);
+
     for(int i = 0;i < n;i++){
         free(data_points[i]);
         if(i< k){
@@ -241,3 +246,4 @@ int main( int argc, char* argv[]) {
     free(centroids);
 
 }
+
