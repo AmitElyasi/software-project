@@ -20,17 +20,16 @@
  * each data point is assigned to exacly one cluster (note that k<n)
  */
 float** kmeans(int k, float** data_points ,int max_iter, int dim, int n){
-
+    short convergece = 1;
     void assign(float**, float** ,int, int, int);
-    void re_estimate(float**, float** ,int, int, int);
+    short re_estimate(float**, float** ,int, int, int);
     float** build_clusters(int, int, float**);
 
     float** clusters = build_clusters(k, dim, data_points);
     for (int i=0; i<max_iter; i++){
         assign(data_points, clusters, dim, n, k);
         convergece = re_estimate(data_points, clusters, dim, n, k);
-        if (convergece) {
-            printf("we have reach convergence after %d iterations",k);
+        if (convergece == 1) {
             return clusters;
         }
     }
@@ -64,9 +63,10 @@ void assign(float** data_points, float** clusters, int dim, int n, int k){
 /*
  * re-estimates a centroid for each cluster:
  * for each cluster calculate the average of the points assign to it,
- * updates centroids to be the average vector
+ * updates centroids to be the average vector,
+ * returns 1 if the old centroids are equal to the new ones.
  */
-void re_estimate(float** data_points, float** clusters, int dim, int n, int k) {
+short re_estimate(float** data_points, float** clusters, int dim, int n, int k) {
     int j;
     void vec_sum(float *, float *, int);
     void zero_mat(float **, int, int, int);
@@ -89,21 +89,26 @@ void re_estimate(float** data_points, float** clusters, int dim, int n, int k) {
     }
 
     // Compare the old centroids to the new ones
-    for (i = 0; i < k; i++) {
-        for (j = 0; j < dim; j++) {
-            if (clusters[i][j] != clusters[i + k][j]) {
+    for (int i = 0; i < k; i++) {
+        for (int j = 0; j < dim; j++) {
+            if (!(((clusters[i][j] - clusters[i + k][j]) < 0.000001) && ((clusters[i][j] - clusters[i + k][j]) > -0.000001))) {
                 isEqual = 0;
+                break;
             }
         }
+        if (!isEqual){
+            break;
+        }
     }
+
     // if there is no change in centroid- we have reach convergence
-    if (isEqual) {
+    if (isEqual == 1) {
         return 1;
     }
 
     // copy the new centroids to the old ones place
-    for (i = 0; i < k; i++) {
-        for (j = 0; j < dim; j++) {
+    for (int i = 0; i < k; i++) {
+        for (int j = 0; j < dim; j++) {
             clusters[i][j]=clusters[i+k][j];
         }
     }
@@ -254,6 +259,20 @@ void print_centroids(float** clusters, int k, int dim){
 }
 
 
+/*
+ * (just for tests)
+ * prints the new centroids (before coping them in the template requierd
+ */
+void print_new_centroids(float** clusters, int k, int dim){
+    for(int i = k; i < 2*k;i++){
+        for(int j = 0;j < dim-1;j++){
+            printf("%0.4f,", clusters[i][j]);
+        }
+        printf("%.4f\n", clusters[i][dim-1]);
+    }
+}
+
+
 int main( int argc, char* argv[]) {
     float** kmeans(int, float** , int, int, int);
     float** read_data(FILE*, int, int );
@@ -295,6 +314,4 @@ int main( int argc, char* argv[]) {
         free(centroids[i]);
     }
     free(centroids);
-
 }
-
