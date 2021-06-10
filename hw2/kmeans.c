@@ -27,13 +27,14 @@ static PyObject * fit_c(int k, PyObject *pyData_points, PyObject *pyCentroid, in
             }
             set(data_points, i, j, dim+1, x);
 
-
-            item = PyList_GetItem(pyCentroid, index);
-            x = (float) PyFloat_AsDouble(item);
-            if(x == -1.0 && PyErr_Occurred){
+            if(i < k){
+                item = PyList_GetItem(pyCentroid, index);
+                x = (float) PyFloat_AsDouble(item);
+                if(x == -1.0 && PyErr_Occurred){
                 puts("float error");
+                }
+                set(centroid, i, j, dim, x);
             }
-            set(centroid, i, j, dim, x);
         }
         set(data_points, i, dim, dim+1, 0);
     }
