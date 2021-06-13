@@ -2,7 +2,18 @@
 #include <Python.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+/*
+ * Helper functions prototypes
+ */
+static int kmeans(int , float*, float*, float*, int, int, int );
+static void assign(float *, float *, int, int, int);
+static short re_estimate(float *, float*,float *, int, int, int);
+static void vec_sum(float *, float *, int, int, int);
+static void zero_mat(float *, int, int);
+static float distance(float *, float *, int,int, int);
+static float get(float*, int, int, int);
+static void set(float* , int, int, int, float);
+static PyObject *Convert_Big_Array(float *, int);
 
 /*
 * kmeans code start here
@@ -27,12 +38,12 @@ static int kmeans(int k, float* data_points, float* centroids, float* utl ,int m
  * updates the number of cluster for each data point
  */
 static void assign(float* data_points, float* clusters, int dim, int n, int k){
-    int cluster;
     int int_max = 2147483647;
+    int cluster;
     int v,c;
     float min_dis, dis;
 
-    min_dis = int_ma;
+    min_dis = int_max;
     for(v = 0; v < n; v++){
         for(c = 0;c < k; c++){
             dis = distance(data_points, clusters, dim, v, c);
@@ -42,7 +53,7 @@ static void assign(float* data_points, float* clusters, int dim, int n, int k){
             }
         }
         set(data_points, v, dim, dim + 1, cluster);
-        min_dis = int_ma;
+        min_dis = int_max;
     }
 }
 
@@ -168,6 +179,19 @@ static void set(float* arr, int i, int j, int dim, float item){
 /*
 * python c extension start here
 */
+
+static PyObject *Convert_Big_Array(float *array, int length){
+    PyObject *pylist, *item;
+    int i;
+    pylist = PyList_New(length);
+    for (i=0; i<length; i++) {
+      item = PyFloat_FromDouble((double) array[i]);
+      PyList_SetItem(pylist, i, item);
+    }
+    return pylist;
+  }
+
+
 static PyObject * fit_c(int k, PyObject *pyData_points, PyObject *pyCentroid, int max_iter, int dim, int n){
     float *data_points, *centroid, *utl,x;
     Py_ssize_t index;
@@ -228,16 +252,6 @@ static PyObject *fit_capi(PyObject* self, PyObject* args){
     
 }
 
-static PyObject *Convert_Big_Array(float *array, int length){
-    PyObject *pylist, *item;
-    int i;
-    pylist = PyList_New(length);
-    for (i=0; i<length; i++) {
-      item = PyFloat_FromDouble((double) array[i]);
-      PyList_SetItem(pylist, i, item);
-    }
-    return pylist;
-  }
 
 /*
  * This array tells Python what methods this module has.
