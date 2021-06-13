@@ -30,7 +30,7 @@ def readAndJoin(file1, file2):
 
 
 def arrToSeq(arr):
-    return [item for vec in arr for item in arr]
+    return [item for vec in arr for item in vec]
 
 
 def main():
