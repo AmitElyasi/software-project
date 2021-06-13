@@ -5,9 +5,9 @@ import pandas as pd
 
 def Kmeans_pp(datapoints,k):
     n = len(datapoints)
-    centroids = np.empty(k)
+    centroids = [0]
     np.random.seed(0)
-    centroids[0] = np.random.choice(range(n))
+    centroids[0] = np.random.choice(n,1)[0]
 
     for z in range(k):
         # maybe can empty the existing array...?
@@ -17,8 +17,8 @@ def Kmeans_pp(datapoints,k):
             np.append(min_dists, min(np.inner(point-centroid,point-centroid) for centroid in centroids))
 
         dists_sum = np.sum(min_dists)
-        probabilities = np.array(dist/dists_sum for dist in min_dists)
-        new_centroid_indx = np.random.choice(n, p=probabilities)
+        probabilities = [dist/dists_sum for dist in min_dists]
+        new_centroid_indx = np.random.choice(n, 1, p=probabilities)[0]
         centroids.append(new_centroid_indx)
 
     return centroids
