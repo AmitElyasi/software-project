@@ -2,116 +2,6 @@
 #include <python.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-/*
-* python c extension start here
-*/
-static PyObject * fit_c(int k, PyObject *pyData_points, PyObject *pyCentroid, int max_iter, int dim, int n){
-    float *data_points, *centroid, *utl,x;
-    Py_ssize_t index;
-    int i,j;
-    PyObject *item, *pylist;
-
-    data_points = malloc(sizeof(float) *((dim+1) *n));
-    centroid = malloc(sizeof(float) * (k * dim));
-    utl = malloc(sizeof(float) * (k * (dim+1)));
-
-    /*convert python lists : pyData_points and pyCentroid to c arrays*/
-    for(i = 0;i < n;i++){
-        for(j = 0;j < dim;j++){
-            index = i*dim+j;
-            item = PyList_GetItem(pyData_points,index);
-            x = (float) PyFloat_AsDouble(item);
-            if(x == -1.0 && PyErr_Occurred){
-                puts("float error");
-            }
-            set(data_points, i, j, dim+1, x);
-
-            if(i < k){
-                item = PyList_GetItem(pyCentroid, index);
-                x = (float) PyFloat_AsDouble(item);
-                if(x == -1.0 && PyErr_Occurred){
-                puts("float error");
-                }
-                set(centroid, i, j, dim, x);
-            }
-        }
-        set(data_points, i, dim, dim+1, 0);
-    }
-    convert_pyList_to_array(pyCentroid, centroid);
-
-    kmeans(k,data_points, centroid, utl, max_iter, dim, n);
-
-    pylist = Convert_Big_Array(centroid, k*dim);
-
-    free(data_points);
-    free(centroid);
-    free(utl);
-
-    return pylist;
-} 
-
-static PyObject *fit_capi(PyObject* self, PyObject* args){
-    PyObject *pyData_points, *pyCentroid;
-    int k, dim, n, max_iter;
-    float *centroid;
-    if(!PyArg_ParseTuple(args, "o:fit", &k,
-                                        &pyData_points,
-                                        &pyCentroid,
-                                        &max_iter,
-                                        &dim,
-                                        &n)){
-        return NULL;
-    }
-    return fit_c(k, pyData_points, pyCentroid, max_iter, dim, n);
-    
-}
-
-static PyObject *Convert_Big_Array(float *array, int length){
-    PyObject *pylist, *item;
-    int i;
-    pylist = PyList_New(length);
-    for (i=0; i<length; i++) {
-      item = PyFloat_FromDouble((double) array[i]);
-      PyList_SetItem(pylist, i, item);
-    }
-    return pylist;
-  }
-
-/*
- * This array tells Python what methods this module has.
- * We will use it in the next structure
- */
-static PyMethodDef mykmeansMethods[] = {
-    {"fit",                   /* the Python method name that will be used */
-      (PyCFunction) fit_capi, /* the C-function that implements the Python function and returns static PyObject*  */
-      METH_VARARGS,           /* flags indicating parameters accepted for this function */
-      PyDoc_STR("compute centroid useing the givan initial points")}, /*  The docstring for the function */
-    {NULL, NULL, 0, NULL}     /* The last entry must be all NULL as shown to act as a
-                                 sentinel. Python looks for this entry to know that all
-                                 of the functions for the module have been defined. */
-};
-
-/* This initiates the module using the above definitions. */
-static struct PyModuleDef moduledef = {
-    PyModuleDef_HEAD_INIT,
-    "mykmeanssp", /* name of module */
-    NULL, /* module documentation, may be NULL */
-    -1,  /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
-    mykmeansMethods /* the PyMethodDef array from before containing the methods of the extension */
-};
-
-
-PyMODINIT_FUNC
-PyInit_mykmeanssp(void)
-{
-    PyObject *m;
-    m = PyModule_Create(&moduledef);
-    if (!m) {
-        return NULL;
-    }
-    return m;
-}
 /*
 * kmeans code start here
 */
@@ -282,4 +172,115 @@ static void set(float* arr, int i, int j, int dim, float item){
 
     index = (i*dim + j);
     arr[index] = item;
+}
+/*
+* python c extension start here
+*/
+static PyObject * fit_c(int k, PyObject *pyData_points, PyObject *pyCentroid, int max_iter, int dim, int n){
+    float *data_points, *centroid, *utl,x;
+    void set(float *, int, int, int, float);
+    int kmeans(int, float *, float *,float *, int, int, int);
+    PyObject *Convert_Big_Array(float *, int);
+    Py_ssize_t index;
+    int i,j;
+    PyObject *item, *pylist;
+
+    data_points = malloc(sizeof(float) *((dim+1) *n));
+    centroid = malloc(sizeof(float) * (k * dim));
+    utl = malloc(sizeof(float) * (k * (dim+1)));
+
+    /*convert python lists : pyData_points and pyCentroid to c arrays*/
+    for(i = 0;i < n;i++){
+        for(j = 0;j < dim;j++){
+            index = i*dim+j;
+            item = PyList_GetItem(pyData_points,index);
+            x = (float) PyFloat_AsDouble(item);
+            if(x == -1.0 && PyErr_Occurred()){
+                puts("float error");
+            }
+            set(data_points, i, j, dim+1, x);
+
+            if(i < k){
+                item = PyList_GetItem(pyCentroid, index);
+                x = (float) PyFloat_AsDouble(item);
+                if(x == -1.0 && PyErr_Occurred()){
+                puts("float error");
+                }
+                set(centroid, i, j, dim, x);
+            }
+        }
+        set(data_points, i, dim, dim+1, 0);
+    }
+
+
+    kmeans(k,data_points, centroid, utl, max_iter, dim, n);
+
+    pylist = Convert_Big_Array(centroid, k*dim);
+
+    free(data_points);
+    free(centroid);
+    free(utl);
+
+    return pylist;
+} 
+
+static PyObject *fit_capi(PyObject* self, PyObject* args){
+    PyObject *pyData_points, *pyCentroid;
+    int k, dim, n, max_iter;
+    if(!PyArg_ParseTuple(args, "o:fit", &k,
+                                        &pyData_points,
+                                        &pyCentroid,
+                                        &max_iter,
+                                        &dim,
+                                        &n)){
+        return NULL;
+    }
+    return fit_c(k, pyData_points, pyCentroid, max_iter, dim, n);
+    
+}
+
+static PyObject *Convert_Big_Array(float *array, int length){
+    PyObject *pylist, *item;
+    int i;
+    pylist = PyList_New(length);
+    for (i=0; i<length; i++) {
+      item = PyFloat_FromDouble((double) array[i]);
+      PyList_SetItem(pylist, i, item);
+    }
+    return pylist;
+  }
+
+/*
+ * This array tells Python what methods this module has.
+ * We will use it in the next structure
+ */
+static PyMethodDef mykmeansMethods[] = {
+    {"fit",                   /* the Python method name that will be used */
+      (PyCFunction) fit_capi, /* the C-function that implements the Python function and returns static PyObject*  */
+      METH_VARARGS,           /* flags indicating parameters accepted for this function */
+      PyDoc_STR("compute centroid useing the givan initial points")}, /*  The docstring for the function */
+    {NULL, NULL, 0, NULL}     /* The last entry must be all NULL as shown to act as a
+                                 sentinel. Python looks for this entry to know that all
+                                 of the functions for the module have been defined. */
+};
+
+/* This initiates the module using the above definitions. */
+static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "mykmeanssp", /* name of module */
+    NULL, /* module documentation, may be NULL */
+    -1,  /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
+    mykmeansMethods /* the PyMethodDef array from before containing the methods of the extension */
+};
+
+
+PyMODINIT_FUNC
+PyInit_mykmeanssp(void)
+{
+    PyObject *m;
+    m = PyModule_Create(&moduledef);
+    if (!m) {
+        return NULL;
+    }
+    return m;
 }
