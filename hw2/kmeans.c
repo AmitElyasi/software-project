@@ -7,7 +7,7 @@
 */
 static int kmeans(int k, float* data_points, float* centroids, float* utl ,int max_iter, int dim, int n){
     short convergece = 1;
-    void assign(float*, float*, int, int, int);
+    void static assign(float*, float*, int, int, int);
     short re_estimate(float*, float* , float*, int, int, int);
     int i;
 
@@ -27,9 +27,9 @@ static int kmeans(int k, float* data_points, float* centroids, float* utl ,int m
  * updates the number of cluster for each data point
  */
 static void assign(float* data_points, float* clusters, int dim, int n, int k){
-    int INT_MAX = 2147483647;
     int cluster;
-    float distance(float *, float *, int, int, int);
+    int INT_MAX = 2147483647;
+    float static distance(float *, float *, int, int, int);
     int v,c;
     float min_dis, dis;
     void set(float *, int, int , int,float);
@@ -56,10 +56,10 @@ static void assign(float* data_points, float* clusters, int dim, int n, int k){
  * returns 1 if the old centroids are equal to the new ones.
  */
 static short re_estimate(float* data_points, float* clusters,float *utl, int dim, int n, int k) {
-    void vec_sum(float* , float* , int, int, int);
-    void zero_mat(float *, int, int);
-    float get(float *, int, int, int);
-    void set(float *, int, int, int, float);
+    void static vec_sum(float* , float* , int, int, int);
+    void static zero_mat(float *, int, int);
+    float static get(float *, int, int, int);
+    void static set(float *, int, int, int, float);
     short isEqual = 1;
     int i, j;
     float x;
@@ -133,8 +133,8 @@ static float distance(float *v1, float *v2, int dim,int row_v1, int row_v2){
  * adds vec2 to vec1 coordinate wise
  */
 static void vec_sum(float* vec1, float* vec2, int dim, int row_vec1, int row_vec2){
-    float get(float *, int, int, int);
-    void set(float *, int ,int, int, float);
+    float static get(float *, int, int, int);
+    void static set(float *, int ,int, int, float);
     int i;
     float sum;
     
@@ -150,7 +150,7 @@ static void vec_sum(float* vec1, float* vec2, int dim, int row_vec1, int row_vec
  */
 static void zero_mat(float* clusters , int dim, int n){
     int i,j;
-    void set(float *, int, int, int, float);
+    void static set(float *, int, int, int, float);
 
     for(i = 0; i < n; i++){
         for(j=0; j < dim; j++){
@@ -178,9 +178,9 @@ static void set(float* arr, int i, int j, int dim, float item){
 */
 static PyObject * fit_c(int k, PyObject *pyData_points, PyObject *pyCentroid, int max_iter, int dim, int n){
     float *data_points, *centroid, *utl,x;
-    void set(float *, int, int, int, float);
-    int kmeans(int, float *, float *,float *, int, int, int);
-    PyObject *Convert_Big_Array(float *, int);
+    void static set(float *, int, int, int, float);
+    int static kmeans(int, float *, float *,float *, int, int, int);
+    PyObject * static Convert_Big_Array(float *, int);
     Py_ssize_t index;
     int i,j;
     PyObject *item, *pylist;
