@@ -3,14 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static void assign(float* data_points, float* clusters, int dim, int n, int k);
-static short re_estimate(float* data_points, float* clusters,float *utl, int dim, int n, int k) {
-static float distance(float *v1, float *v2, int dim,int row_v1, int row_v2);
-static void set(float* arr, int i, int j, int dim, float item);
-static void zero_mat(float* clusters , int dim, int n);
-static float get(float* arr, int i, int j, int dim);
-static void vec_sum(float* vec1, float* vec2, int dim, int row_vec1, int row_vec2);
-static PyObject *Convert_Big_Array(float *array, int length);
 
 /*
 * kmeans code start here
