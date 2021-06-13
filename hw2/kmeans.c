@@ -2,13 +2,21 @@
 #include <Python.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+static void assign(float* data_points, float* clusters, int dim, int n, int k);
+static short re_estimate(float* data_points, float* clusters,float *utl, int dim, int n, int k) {
+static float distance(float *v1, float *v2, int dim,int row_v1, int row_v2);
+static void set(float* arr, int i, int j, int dim, float item);
+static void zero_mat(float* clusters , int dim, int n);
+static float get(float* arr, int i, int j, int dim);
+static void vec_sum(float* vec1, float* vec2, int dim, int row_vec1, int row_vec2);
+static PyObject *Convert_Big_Array(float *array, int length);
+
 /*
 * kmeans code start here
 */
 static int kmeans(int k, float* data_points, float* centroids, float* utl ,int max_iter, int dim, int n){
     short convergece = 1;
-    static void assign(float*, float*, int, int, int);
-    short re_estimate(float*, float* , float*, int, int, int);
     int i;
 
     for (i=0; i<max_iter; i++){
@@ -29,10 +37,8 @@ static int kmeans(int k, float* data_points, float* centroids, float* utl ,int m
 static void assign(float* data_points, float* clusters, int dim, int n, int k){
     int cluster;
     int int_max = 2147483647;
-    static float distance(float *, float *, int, int, int);
     int v,c;
     float min_dis, dis;
-    void set(float *, int, int , int,float);
 
     min_dis = int_ma;
     for(v = 0; v < n; v++){
@@ -56,10 +62,6 @@ static void assign(float* data_points, float* clusters, int dim, int n, int k){
  * returns 1 if the old centroids are equal to the new ones.
  */
 static short re_estimate(float* data_points, float* clusters,float *utl, int dim, int n, int k) {
-    static void vec_sum(float* , float* , int, int, int);
-    static void zero_mat(float *, int, int);
-    static float get(float *, int, int, int);
-    static void set(float *, int, int, int, float);
     short isEqual = 1;
     int i, j;
     float x;
@@ -118,7 +120,6 @@ static float distance(float *v1, float *v2, int dim,int row_v1, int row_v2){
     int i;
     float result = 0;
     float x;
-    float get(float *, int, int, int);
     
     for(i = 0;i < dim;i++){
         x = (get(v1, row_v1, i, dim + 1)-get(v2, row_v2, i, dim));
@@ -133,8 +134,6 @@ static float distance(float *v1, float *v2, int dim,int row_v1, int row_v2){
  * adds vec2 to vec1 coordinate wise
  */
 static void vec_sum(float* vec1, float* vec2, int dim, int row_vec1, int row_vec2){
-    static float get(float *, int, int, int);
-    static void set(float *, int ,int, int, float);
     int i;
     float sum;
     
@@ -150,7 +149,6 @@ static void vec_sum(float* vec1, float* vec2, int dim, int row_vec1, int row_vec
  */
 static void zero_mat(float* clusters , int dim, int n){
     int i,j;
-    static void set(float *, int, int, int, float);
 
     for(i = 0; i < n; i++){
         for(j=0; j < dim; j++){
@@ -167,6 +165,8 @@ static float get(float* arr, int i, int j, int dim){
     index = (i*dim + j);
     return arr[index];
 }
+
+
 static void set(float* arr, int i, int j, int dim, float item){
     int index;
 
@@ -178,9 +178,6 @@ static void set(float* arr, int i, int j, int dim, float item){
 */
 static PyObject * fit_c(int k, PyObject *pyData_points, PyObject *pyCentroid, int max_iter, int dim, int n){
     float *data_points, *centroid, *utl,x;
-    static void set(float *, int, int, int, float);
-    static int kmeans(int, float *, float *,float *, int, int, int);
-    static PyObject * Convert_Big_Array(float *, int);
     Py_ssize_t index;
     int i,j;
     PyObject *item, *pylist;
