@@ -240,7 +240,7 @@ static PyObject * fit_c(int k, PyObject *pyData_points, PyObject *pyCentroid, in
 static PyObject *fit_capi(PyObject* self, PyObject* args){
     PyObject *pyData_points, *pyCentroid;
     int k, dim, n, max_iter;
-    if(!PyArg_ParseTuple(args, "o:fit", &k,
+    if(!PyArg_ParseTuple(args, "iOOiii", &k,
                                         &pyData_points,
                                         &pyCentroid,
                                         &max_iter,
