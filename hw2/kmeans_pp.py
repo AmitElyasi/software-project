@@ -22,15 +22,26 @@ def Kmeans_pp(datapoints,k):
 
     return centroids
 
-def read_data(file1, file2=None):
-    data1 = pd.read_csv(file1)
-    if file2:
-        data2 = pd.read_csv(file2)
-    return data1
+def readAndJoin(file1, file2):
+    data1 = pd.read_csv(file1, header=None)
+    data2 = pd.read_csv(file2, header=None)
+    data = pd.merge(data1, data2, on=0, sort=True)
+    return data.drop(0,1)
+
+
+def arrToSeq(arr):
+    return [item for vec in arr for item in arr]
+
+
+def main():
+    file1="test_data\input_1_db_1.txt"
+    file2 = "test_data\input_1_db_2.txt"
+    datapoints = readAndJoin(file1,file2)
+    print(datapoints)
+
+
+if __name__ == "__main__":
+    main()
 
 
 
-if __name__ == '__main__':
-    datapoints = read_data('input_1_db_1.txt')
-    #print(datapoints)
-    print(Kmeans_pp(datapoints, 3))
