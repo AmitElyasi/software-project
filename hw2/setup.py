@@ -1,9 +1,9 @@
-from setuptools import extension, setup
+from setuptools import Extension, setup
 
 setup(
     name= 'mykmeanssp',
     ext_modules=[
-        extension(
+        Extension(
             'mykmeanssp',
             ['kmeans.c'],
         ),
