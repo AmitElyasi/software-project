@@ -19,23 +19,22 @@
  * given n data point (in R^d), group the data into k clusters,
  * each data point is assigned to exacly one cluster (note that k<n)
  */
-float** kmeans(int k, float** data_points ,int max_iter, int dim, int n){
+int kmeans(int k, float* data_points, float* centroids, float* utl ,int max_iter, int dim, int n){
     short convergece = 1;
-    void assign(float**, float** ,int, int, int);
-    short re_estimate(float**, float** ,int, int, int);
-    float** build_clusters(int, int, float**);
+    void assign(float*, float*, int, int, int);
+    short re_estimate(float*, float* , float*, int, int, int);
+    void build_clusters(int, int, float*, float*);
     int i;
-    float** clusters;
 
-    clusters = build_clusters(k, dim, data_points);
+    build_clusters(k, dim, data_points, centroids);
     for (i=0; i<max_iter; i++){
-        assign(data_points, clusters, dim, n, k);
-        convergece = re_estimate(data_points, clusters, dim, n, k);
+        assign(data_points, centroids, dim, n, k);
+        convergece = re_estimate(data_points, centroids, utl, dim, n, k);
         if (convergece == 1) {
-            return clusters;
+            return 0;
         }
     }
-    return clusters;
+    return 0;
 }
 
 
@@ -43,23 +42,24 @@ float** kmeans(int k, float** data_points ,int max_iter, int dim, int n){
  * assigns data points to their closest cluster (measure distance from the centroid)
  * updates the number of cluster for each data point
  */
-void assign(float** data_points, float** clusters, int dim, int n, int k){
+void assign(float* data_points, float* clusters, int dim, int n, int k){
     int INT_MAX = 2147483647;
     int cluster;
-    float distance(float *, float *, int);
+    float distance(float *, float *, int, int, int);
     int v,c;
     float min_dis, dis;
+    void set(float *, int, int , int,float);
 
     min_dis = INT_MAX;
     for(v = 0; v < n; v++){
         for(c = 0;c < k; c++){
-            dis = distance(data_points[v], clusters[c], dim);
+            dis = distance(data_points, clusters, dim, v, c);
             if( dis <= min_dis){
                 min_dis = dis;
                 cluster = c;
             }
         }
-        data_points[v][dim] = cluster;
+        set(data_points, v, dim, dim + 1, cluster);
         min_dis = INT_MAX;
     }
 }
@@ -71,32 +71,37 @@ void assign(float** data_points, float** clusters, int dim, int n, int k){
  * updates centroids to be the average vector,
  * returns 1 if the old centroids are equal to the new ones.
  */
-short re_estimate(float** data_points, float** clusters, int dim, int n, int k) {
-    void vec_sum(float *, float *, int);
-    void zero_mat(float **, int, int, int);
+short re_estimate(float* data_points, float* clusters,float *utl, int dim, int n, int k) {
+    void vec_sum(float* , float* , int, int, int);
+    void zero_mat(float *, int, int);
+    float get(float *, int, int, int);
+    void set(float *, int, int, int, float);
     short isEqual = 1;
     int i, j;
+    float x;
 
-    zero_mat(clusters, dim + 1, k, 2 * k);
+    zero_mat(utl, dim + 1, k);
 
     /* sum all vectors for each cluster */
     for (i = 0; i < n; i++) {
-        j = data_points[i][dim];
-        vec_sum(clusters[j + k], data_points[i], dim);
-        clusters[j + k][dim]++;
+        j = get(data_points, i, dim, dim+1);
+        vec_sum(utl, data_points, dim, j, i);
+        x = get(utl, j, dim, dim + 1) + 1;
+        set(utl, j, dim, dim + 1, x);
     }
 
     /* Divides each sum by the number of vectors to get average */
-    for (i = k; i < 2 * k; i++) {
+    for (i = 0; i < k; i++) {
         for (j = 0; j < dim; j++) {
-            clusters[i][j] = clusters[i][j] / clusters[i][dim];
+            x = get(utl, i, j, dim+1);
+            set(utl, i, j, dim + 1, (x / get(utl, i, dim, dim+1)));
         }
     }
 
     /* Compare the old centroids to the new ones */
     for (i = 0; i < k; i++) {
         for (j = 0; j < dim; j++) {
-            if (!(((clusters[i][j] - clusters[i + k][j]) < 0.000001) && ((clusters[i][j] - clusters[i + k][j]) > -0.000001))) {
+            if (!(((get(clusters, i, j, dim) - get(utl, i, j, dim+1)) < 0.000001) && ((get(clusters, i, j, dim) - get(utl, i, j, dim+1)) > -0.000001))) {
                 isEqual = 0;
                 break;
             }
@@ -114,7 +119,8 @@ short re_estimate(float** data_points, float** clusters, int dim, int n, int k) 
     /* copy the new centroids to the old ones place */
     for (i = 0; i < k; i++) {
         for (j = 0; j < dim; j++) {
-            clusters[i][j]=clusters[i+k][j];
+            x = get(utl, i, j, dim+1);
+            set(clusters, i, j, dim, x);
         }
     }
     return isEqual;
@@ -124,11 +130,16 @@ short re_estimate(float** data_points, float** clusters, int dim, int n, int k) 
 /*
 * calculate distance between two vectors (v1-v2)^2
 */
-float distance(float *v1, float *v2, int dim){
+float distance(float *v1, float *v2, int dim,int row_v1, int row_v2){
     int i;
     float result = 0;
+    float x;
+    float get(float *, int, int, int);
+
     for(i = 0;i < dim;i++){
-        result += (v1[i]-v2[i])*(v1[i]-v2[i]);
+        x = (get(v1, row_v1, i, dim + 1)-get(v2, row_v2, i, dim));
+        x *= x;
+        result += x;
     }
     return result;
 }
@@ -137,10 +148,15 @@ float distance(float *v1, float *v2, int dim){
 /*
  * adds vec2 to vec1 coordinate wise
  */
-void vec_sum(float* vec1, float* vec2, int dim){
+void vec_sum(float* vec1, float* vec2, int dim, int row_vec1, int row_vec2){
+    float get(float *, int, int, int);
+    void set(float *, int ,int, int, float);
     int i;
+    float sum;
+
     for(i = 0;i < dim;i++){
-        vec1[i] += vec2[i];
+        sum = get(vec1, row_vec1, i, dim+1) + get(vec2, row_vec2, i, dim+1);
+        set(vec1, row_vec1, i, dim + 1, sum);
     }
 }
 
@@ -148,31 +164,39 @@ void vec_sum(float* vec1, float* vec2, int dim){
 /*
  * zeros a given matrix from row start to row end
  */
-void zero_mat(float** clusters , int dim , int start, int end){
+void zero_mat(float* clusters , int dim, int n){
     int i,j;
-    for(i=start; i<end; i++){
-        for(j=0; j<=dim; j++){
-            clusters[i][j]=0;
+    void set(float *, int, int, int, float);
+
+    for(i = 0; i < n; i++){
+        for(j=0; j < dim; j++){
+            set(clusters, i, j, dim, 0);
         }
     }
 }
 
 
-float** read_data(FILE* fp, int n, int dim){
-    int i;
-    int num_of_columns(FILE *);
-    int num_of_lines(FILE *);
-    void fillVectors(FILE *, float **, int , int);
-    float **vectors;
+/* fill given matrix with the data from input file */
+void read_data(FILE* fp, float *data_points, char *line, int n, int dim){
+    void set(float *, int, int, int, float);
+    char *p;
+    int size, i, j;
 
-    /* build matrix that contins all the points */
-    vectors = (float **) malloc(sizeof(float *) * n);
+    size = 50 * dim;
     for(i = 0; i < n; i++){
-        vectors[i] = (float *) malloc(sizeof(float) * (dim+1));
-    }
-    fillVectors(fp, vectors, dim, n);
 
-    return vectors;
+        /* p is a pointer to a beging of a line in the file */
+        p = fgets(line, size, fp);
+
+        for(j = 0; j < dim; j++){
+
+            /* extract float form the line */
+            set(data_points, i, j, dim + 1, strtod(p, &p));
+
+            p += 1; /* skip comma */
+        }
+        set(data_points, i, j, dim + 1, 0);
+    }
 }
 
 
@@ -214,72 +238,61 @@ int num_of_columns(FILE *fp){
 }
 
 
-/* fill given matrix with the data from input file */
-void fillVectors(FILE *fp, float **vectors, int dim, int n){
-    char *p;
-    int size = 50 * dim, i,j ;
-    char *line = malloc(sizeof(char) * size);
-
-    for(i = 0; i < n; i++){
-
-        /* p is a pointer to a beging of a line in the file */
-        p = fgets(line, size, fp);
-
-        for(j = 0; j < dim; j++){
-
-            /* extract float form the line */
-            vectors[i][j] = strtod(p, &p);
-
-            p += 1; /* skip comma */
-        }
-        vectors[i][dim] = 0;
-    }
-    free(line);
-}
-
-
-float ** build_clusters(int k, int dim, float **vectors){
+void build_clusters(int k, int dim, float *vectors, float *centroids){
+    void set(float *, int, int, int, float);
+    float get(float *, int, int ,int);
     int i, j;
-    float **centroid;
-
-    centroid = (float **) malloc(sizeof(float *) * 2 * k);
 
     for(i = 0; i < k; i++){
-        centroid[i] = (float *) malloc(sizeof(float) * (dim));
         for(j = 0;j < dim;j++){
-            centroid[i][j] = vectors[i][j];
+            set(centroids, i, j, dim, get(vectors, i, j, dim + 1));
         }
     }
-    for(i = k; i < 2 * k; i++){
-        centroid[i] = (float *) malloc(sizeof(float) * (dim+1));
-    }
-    return centroid;
 }
 
 
 /*
  * prints the centroids in the template requierd
  */
-void print_centroids(float** clusters, int k, int dim){
+void print_centroids(float* clusters, int k, int dim){
     int i,j;
+    float get(float *, int, int, int);
+
     for(i = 0; i < k;i++){
         for(j = 0;j < dim-1;j++){
-            printf("%0.4f,", clusters[i][j]);
+            printf("%0.4f,", get(clusters, i, j, dim));
         }
-        printf("%.4f\n", clusters[i][dim-1]);
+        printf("%.4f\n", get(clusters, i, dim-1, dim));
     }
 }
 
 
+float get(float* arr, int i, int j, int dim){
+    int index;
+
+    index = (i*dim + j);
+    return arr[index];
+}
+
+
+void set(float* arr, int i, int j, int dim, float item){
+    int index;
+
+    index = (i*dim + j);
+    arr[index] = item;
+}
+
 
 int main( int argc, char* argv[]) {
-    float** kmeans(int, float** , int, int, int);
-    float** read_data(FILE*, int, int );
-    void print_centroids(float**, int, int);
-    int max_iter, i, dim, k, n;
+    int kmeans(int, float* , float*, float*, int, int, int);
+    void read_data(FILE*, float *, char *, int, int );
+    void print_centroids(float*, int, int);
+    int max_iter, dim, k, n;
     long bOfFile;
-    float **data_points;
-    float **centroids;
+    float * utl;
+    float *data_points;
+    float *centroids;
+    char *line;
 
     /* reading arguments */
     k = strtol(argv[1], NULL, 10);
@@ -302,7 +315,7 @@ int main( int argc, char* argv[]) {
         printf("INPUT ERROR:\nk is invalid");
         return 1;
     }
-    if(n < k){
+    if(n <= k){
         printf("INPUT ERROR:\nthere are less then k=%d data points",k);
         return 1;
     }
@@ -311,22 +324,23 @@ int main( int argc, char* argv[]) {
     dim = num_of_columns(stdin);
     fseek(stdin, bOfFile, SEEK_SET);/*set the file position back to the beginning */
 
-
-    data_points = read_data(stdin, n, dim);
-    centroids = kmeans(k, data_points, max_iter, dim, n);
+    line = malloc(sizeof(char) * (30*dim));
+    /* build matrix that contins all the points */;
+    data_points = malloc(sizeof(float) * ((dim+1) * n));
+    /* build matrix that contins all the centroids */;
+    centroids = malloc(sizeof(float) * (dim*k));
+    /* build matrix that use for calclations */;
+    utl = malloc(sizeof(float) * ((dim+1)*k));
+    read_data(stdin, data_points, line, n, dim);
+    kmeans(k, data_points, centroids, utl, max_iter, dim, n);
     print_centroids(centroids, k, dim);
 
 
     /* free the memory used */
-    for(i = 0;i < n;i++) {
-        free(data_points[i]);
-    }
+    free(line);
     free(data_points);
-
-    for(i = 0;i < 2*k ;i++){
-        free(centroids[i]);
-    }
     free(centroids);
+    free(utl);
 
     return 0;
 }
