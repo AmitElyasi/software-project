@@ -2,17 +2,61 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+/* given A real symmetric matrix updates A and a matrix V that A is diagonal and all of A eigenvalues
+on the diagonal and V columns is the correspondence eigenvector
+*/
+void jacobi_algorithm_for_eigenvalues(float *A, float *V, int n){
+    float off_of_A,off_of_Atag,epsilon,s,c,t,val;
+    int row,col,i;
+    /*if A diagonl metrix we skip the while loop with this starting settings*/
+    off_of_A = 0;  
+    off_of_Atag = calc_off_square(A, n);
+    epsilon = 0.001;
 
-void form_diagonal_mat(float *diagonal_mat, float *weighted_adj_mat , int n, int dim){
+
+    while(fabs(off_of_A - off_of_Atag) > epsilon){
+        off_of_A = off_of_Atag;
+        indexes_of_max_off_diag(A, &row, &col, n);
+        t = get_t(A, row, col, n);
+        c = get_c(t);
+        s = t * c;
+        
+        /*update A */
+        for(i=0;i<n;i++){
+            if(i != row && i != col){
+                val = c * get(A, i, row , n) - s * get(A, i, col, n);
+                set(A, i, row, n, val);
+                set(A, row, i, n, val);
+                val = c * get(A, i, col , n) + s * get(A, i, row, n);
+                set(A, i, col, n, val);
+                set(A, col, i, n, val);
+            }else{
+                set(A, row, row, n, powf(c,2)* get(A, i, i, n) + powf(s,2) * get(A, col,  col, n) - 2 * s * c * get(A, row, col, n));
+                set(A, col, col, n, powf(s,2)* get(A, i, i, n) + powf(c,2) * get(A, col, col, n) + 2 * s * c * get(A, row, col, n));
+                set(A, row, col, n, (powf(c,2)*  - powf(s,2)) * get(A, row,  col, n) -  s * c * (get(A, row, row, n) - get(A, col, col, n)));
+                set(A, col, row, n, powf(c,2)* get(A, i, i, n) + powf(s,2) * get(A, col,  col, n) - 2 * s * c * get(A, row, col, n));
+            }
+        }
+        off_of_Atag = calc_off_square(A,n);
+        /*update V */
+        for(i = 0;i<n;i++){
+            set(V, i, row, n, c * get(V, i, row, n) - s * get(V, i , col, n));
+            set(V, i, row, n, c * get(V, i, col, n) + s * get(V, i , row, n));
+        }
+        
+    }
+    
+}
+
+void form_diagonal_mat(float *diagonal_mat, float *weighted_adj_mat , int n){
     int i,j;
     float d = 0;
     for(i=0;i<n;i++){
-        for(j=0;j<dim;j++){
+        for(j=0;j<n;j++){
             d += weighted_adj_mat[0];
             weighted_adj_mat++;
         }
-        d = sqrt(d);
-        diagonal_mat[i] = 1/d;
+        diagonal_mat[i] = d;
     }
 }
 
@@ -23,10 +67,10 @@ void form_weighted_adj_mat(float *mat, float *data_points, int dim, int n){
     int i,j;
     
     for(i = 0;i<n;i++){
-        for(j=0;j<dim;j++){
+        for(j=0;j<n;j++){
             w = distance(data_points, data_points, dim, i, j)/2;
             w = exp(-w);
-            set(mat, i, j, dim , w);
+            set(mat, i, j, n , w);
         }
     }
 }
@@ -36,16 +80,15 @@ void form_weighted_adj_mat(float *mat, float *data_points, int dim, int n){
  * calculates I-DWD into normalized_laplacian */
 void calc_normalized_laplacian(float *normalized_laplacian, float *diagonal_mat, float *weights_mat, int dim){
     void set(float *, int, int, int, float);
-    float get(float*, int, int, int);
-
+    float get(float*, int, int, int), result = 0;
     int i,j;
 
     for(i = 0;i<dim;i++){
         for(j=0;j<dim;j++){
             if(i==j) {
-                result = 1 - (powf(get(diagonal_mat, i, 0, 1), 2) * get(weights_mat, i, i, dim));
+                result = 1 - (1/diagonal_mat[i]) * get(weights_mat, i, i, dim);
             }else{
-                result = (-1) * get(diagonal_mat, i, 0, 1) * get(weights_mat, i, i, dim) * get(diagonal_mat, i, 0, 1);
+                result = (-1) * (1/sqrt(diagonal_mat[i])) * get(weights_mat, i, j, dim) * (1/sqrt(diagonal_mat[j]));
             }
             set(normalized_laplacian, i, j, dim , result);
         }
@@ -55,8 +98,8 @@ void calc_normalized_laplacian(float *normalized_laplacian, float *diagonal_mat,
 
 /** given a square matrix (mat), sets row and col to be
  * the indexes of the off-diagonal largest absolute value */
-void indexes_of_max_off_diag(float *mat, int row, int col){
-    float max=0;
+void indexes_of_max_off_diag(float *mat, int *row, int *col, int dim){
+    float max=0,val;
     int i,j;
 
     /*set indexes to 0 by defualt, for the case where all off-diagonal values are 0 */
@@ -98,8 +141,21 @@ float get_t(float *mat, int i, int j, int dim){
 float get_c(float t){
     return  1/ (sqrt(powf(t,2)+1));
 }
+/* given matrix mat calculates the off(mat)^2 = notm_f(mat) - sum_(i=1)^n a_ii*/
+float calc_off_square(float *mat,int n){
+    float result = 0,get(float *, int ,int, int);
+    int i,j;
 
+    for(i=0;i<n;i++){
+        for(j=0;j<n;j++){
+            if(i != j){
+                result += powf(get(mat, i, j, n),2);
+            }
+        }
+    }
+    return result;
 
+}
 
 /** fill given matrix with the data from input file */
 void read_data(FILE* fp, float *data_points, char *line, int n, int dim){
@@ -201,14 +257,14 @@ int main( int argc, char* argv[]) {
     line = malloc(sizeof(char) * (30*dim));
     /* build matrix that contins all the points */
     data_points = malloc(sizeof(float) * dim * n);
-    weighted_adj_mat = malloc(sizeof(float) * dim * n);
+    weighted_adj_mat = malloc(sizeof(float) * n * n);
     /*vactor that represent the D matrix*/
     diagonal_mat = malloc(sizeof(float) * n);
     /* build matrix that contins all the centroids */
     centroids = malloc(sizeof(float) * (dim*k));
     read_data(stdin, data_points, line, n, dim);
     form_weighted_adj_mat(weighted_adj_mat,data_points, dim, n);
-    form_diagonal_mat(diagonal_mat, n);
+    form_diagonal_mat(diagonal_mat, weighted_adj_mat, n);
     print_centroids(centroids, k, dim);
 
 
