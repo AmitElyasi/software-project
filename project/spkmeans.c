@@ -52,6 +52,27 @@ PyObject* c_array_to_pyMat(double* mat, int n, int m){
 
 /*start of Normalized Spectral Clustering implementation*/
 
+/*find the eigangap heuristic and return the number of cluster*/
+int calc_eiganvalue_gap(float *mat, float *sorted_eiganvalues, int n){
+    float *deltas;
+    int i,index,half_n,max = 0,result = 0;
+    
+    deltas = malloc(sizeof(float) * n);
+    for(i=0;i<n-1;i++){
+        index = sorted_eiganvalues[i];
+        deltas[i] = fabs(get(mat, index, index, n) - get(mat, index+1, index+1, n));
+    }
+    half_n = (int) (n/2);
+    for(i=0;i<half_n;i++){
+        if(max < deltas[i]){
+            max = deltas[i];
+            result = i;
+        }
+    }
+
+    return result;
+}
+
 /* given A real symmetric matrix updates A and a matrix V that A is diagonal and all of A eigenvalues
 on the diagonal and V columns is the correspondence eigenvector
 */
@@ -149,21 +170,19 @@ void calc_normalized_laplacian(float *normalized_laplacian, float *diagonal_mat,
 /** given a square matrix (mat), sets row and col to be
  * the indexes of the off-diagonal largest absolute value */
 void indexes_of_max_off_diag(float *mat, int *row, int *col, int dim){
-    float max=0,val;
+    float max=0,val=0;
     int i,j;
 
-    /*set indexes to 0 by defualt, for the case where all off-diagonal values are 0 */
-    row=0;
-    col=0;
-
     for(i = 0;i<dim;i++){
-        for(j=0;j<dim;j++){
+        for(j=i;j<dim;j++){
             val = get(mat,i,j,dim);
             if( i!=j && abs(val) >= max ){
+                if(max == val && row >= i && col >= j){
                 max = val ;
                 row = i;
                 col = j;
             }
+                }
         }
     }
 }
