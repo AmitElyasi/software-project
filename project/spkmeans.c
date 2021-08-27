@@ -2,6 +2,56 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <Python.h>
+
+/*utils for python c api*/
+int pyMat_to_C_array(PyObject* pyMat, float* mat, int dim){
+    int i,j,m,n;
+    PyObject* pyVec;
+    PyObject* pyItem;
+    /* Is it a list? */
+    if (!PyList_Check(pyMat))
+        return 0;
+    /* Get the size of it and build the output list */
+    n = PyList_Size(pyMat);  /*  Same as in Python len(_list)  */
+    /* Go over each item of the list and reduce it */
+    for (i = 0; i < n; i++) {
+        pyVec = PyList_GetItem(pyMat, i);
+        if (!PyList_Check(pyVec)){  /* We only print lists */
+            return 0;
+        }
+        m = PyList_Size(pyVec);
+        for (j = 0; j < m; j++) {
+            pyItem = PyList_GetItem(pyVec, j);
+            set(mat, i, j , dim, PyFloat_AsDouble(pyItem));
+    
+            if (get(mat, i, j, dim) == -1 && PyErr_Occurred()){
+                /* float too big to fit in a C double, bail out */
+                puts("Error parsing a list to C matrix");
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+/*return pyList ocject in the shape of (n,m) */
+PyObject* c_array_to_pyMat(double* mat, int n, int m){
+    int i, j;
+    PyObject *pyItem, *pyVec, *pyMat;
+    pyMat = PyList_New(0);
+    for (i=0; i < n; i++){
+        pyVec = PyList_New(0);
+        for (j = 0; j < m; j++){
+            pyItem = Py_BuildValue("d", get(mat, i, j, m));
+            PyList_Append(pyVec, pyItem);
+        }
+        PyList_Append(pyMat, pyVec);
+    }
+    return pyMat;
+}
+
+/*start of Normalized Spectral Clustering implementation*/
+
 /* given A real symmetric matrix updates A and a matrix V that A is diagonal and all of A eigenvalues
 on the diagonal and V columns is the correspondence eigenvector
 */
