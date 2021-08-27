@@ -204,7 +204,25 @@ float calc_off_square(float *mat,int n){
         }
     }
     return result;
+}
 
+
+/**
+ * given diagonal matrix [n*n] and an empty array [n], fills the array with the diagonal values
+ */
+void diag_to_array(float *diag, float *arr, int n){
+    int i;
+    for (i=0;i<n;i++){
+        arr[i]=get(diag, i, i, n);
+    }
+}
+
+
+void fill_ordered_ints(int *arr, int dim){
+    int i;
+    for (i=0 ; i<dim ; i++){
+        arr[i]=i;
+    }
 }
 
 
@@ -214,7 +232,9 @@ float calc_off_square(float *mat,int n){
  * (using QuickSort algorithm)
  */
 void quickSort_indexes(float *arr, int *indexes, int dim){
+    void fill_ordered_ints(int *, int );
     void quickSort_rec(float*, int*, int, int);
+    fill_ordered_ints(arr, dim);
     quickSort_rec(arr, indexes, 0, dim-1);
 }
 
@@ -274,9 +294,35 @@ void read_data(FILE* fp, float *data_points, char *line, int n, int dim){
     }
 }
 
-/*
-* calculate distance between two vectors sqrt(sum_(i=1)^n (v1_i-v2_i)^2) (norm2)
-*/
+
+/**
+ * given the eigenvectors matrix [n*n] (as columns), an array [n] that dictates an order on the eigenvalues,
+ * n (the mat dimention), k, and a result matrix [n*k],
+ * fills the result matrix with the normalized first k eigenvectors as columns
+ */
+void normalized_k_eigenvectors(float *eigenvecs, int *indexes, int n, int k, float *result){
+    float get(float *, int, int, int);
+    void set(float *, int, int, int);
+    int i, j, t;
+    float sum;
+
+    for(i=0;i<k;i++){
+        j=indexes[i];
+        for (t=0; t < n; t++){
+            sum += get(eigenvecs, t, j, n)^2;
+        }
+        sum = sqrt(sum);
+        for (t=0; t < n; t++){
+            set(result, t, i, k, get(eigenvecs, t, j, n)/sum);
+        }
+    }
+}
+
+
+
+/**
+ * calculate distance between two vectors sqrt(sum_(i=1)^n (v1_i-v2_i)^2) (norm2)
+ */
 float distance(float *v1, float *v2, int dim,int row_v1, int row_v2){
     int i;
     float result = 0;
