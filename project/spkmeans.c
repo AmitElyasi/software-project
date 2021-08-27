@@ -207,6 +207,51 @@ float calc_off_square(float *mat,int n){
 
 }
 
+
+/**
+ * given an array [arr], and an array- indexes of length [dim] such that indexes[i]=i for any i,
+ * changes the order of the indexes such that the new order is the sorted order of the array values.
+ * (using QuickSort algorithm)
+ */
+void quickSort_indexes(float *arr, int *indexes, int dim){
+    void quickSort_rec(float*, int*, int, int);
+    quickSort_rec(arr, indexes, 0, dim-1);
+}
+
+
+void quickSort_rec(float *arr, int *indexes, int low, int high) {
+    void quickSort_rec(float*, int *, int, int);
+    int partition(float *, int *, int, int);
+    int mid;
+    if (low < high) {
+        mid = partition(arr, indexes, low, high);
+        quickSort_rec(arr, indexes, low, mid - 1);
+        quickSort_rec(arr, indexes, mid + 1, high);
+    }
+}
+
+
+int partition(float *arr, int *indexes, int low, int high){
+    float pivot = arr[indexes[high]];
+    int i = low-1, j, temp;
+
+    for(j=low; j <= high-1; j++){
+        if (arr[indexes[j]] < pivot){
+            i++;
+            temp = indexes[i];
+            indexes[i] = indexes[j];
+            indexes[j] = temp;
+        }
+    }
+    temp = indexes[i+1];
+    indexes[i+1] = indexes[high];
+    indexes[high] = temp;
+
+    return i+1;
+}
+
+
+
 /** fill given matrix with the data from input file */
 void read_data(FILE* fp, float *data_points, char *line, int n, int dim){
     void set(float *, int, int, int, float);
