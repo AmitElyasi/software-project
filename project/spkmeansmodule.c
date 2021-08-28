@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
 /*utils functions*/
 int pyMat_to_C_array(PyObject* pyMat, float* mat, int dim){
     int i,j,m,n;
@@ -51,7 +52,7 @@ PyObject* c_array_to_pyMat(float* mat, int n, int m){
 }
 
 
-static PyObject *calc_tranformation_matrix(int k, char *goal, PyObject *pyData_points, int dim, int n){
+static PyObject *calc_transformation_matrix(int k, char *goal, PyObject *pyData_points, int dim, int n){
     float x,*data_points, *weighted_adj_mat, *diagonal_mat, *normalized_laplacian, *eigonvalues, *V, *T;
     int i,j, index,*indexes;
     PyObject *item, *pyvec, *pymat;
@@ -113,7 +114,7 @@ static PyObject *calc_tranformation_matrix(int k, char *goal, PyObject *pyData_p
 }
 
 
-static PyObject *calc_tranformation_matrix_capi(PyObject *self, PyObject* args){
+static PyObject *calc_transformation_matrix_capi(PyObject *self, PyObject* args){
     PyObject *pyData_points, *pyCentroid;
     int k, dim, n, max_iter;
     char *goal;

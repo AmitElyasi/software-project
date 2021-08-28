@@ -27,9 +27,9 @@ int calc_eiganvalue_gap(float *mat, float *sorted_eiganvalues, int n){
     return result;
 }
 
-/* given A real symmetric matrix updates A and a matrix V that A is diagonal and all of A eigenvalues
-on the diagonal and V columns is the correspondence eigenvector
-*/
+/** given A real symmetric matrix updates A and a matrix V that A is diagonal and all of A eigenvalues
+ * on the diagonal and V columns is the correspondence eigenvector
+ */
 void jacobi_algorithm_for_eigenvalues(float *A, float *V, int n){
     float off_of_A,off_of_Atag,epsilon,s,c,t,val;
     int row,col,i;
@@ -191,6 +191,9 @@ void diag_to_array(float *diag, float *arr, int n){
 }
 
 
+/** given array of length dim, and its dimention, fills the array with integers
+ * such that arr[i]=i
+ */
 void fill_ordered_ints(int *arr, int dim){
     int i;
     for (i=0 ; i<dim ; i++){
@@ -200,8 +203,8 @@ void fill_ordered_ints(int *arr, int dim){
 
 
 /**
- * given an array [arr], and an array- indexes of length [dim] such that indexes[i]=i for any i,
- * changes the order of the indexes such that the new order is the sorted order of the array values.
+ * given an array- arr, and another array- indexes, both of length dim,
+ * fills indexes with integers [0,dim-1] such that their order dictates a sorted order on arr values.
  * (using QuickSort algorithm)
  */
 void quickSort_indexes(float *arr, int *indexes, int dim){
@@ -211,7 +214,8 @@ void quickSort_indexes(float *arr, int *indexes, int dim){
     quickSort_rec(arr, indexes, 0, dim-1);
 }
 
-
+/** recursive QuickSort
+ */
 void quickSort_rec(float *arr, int *indexes, int low, int high) {
     void quickSort_rec(float*, int *, int, int);
     int partition(float *, int *, int, int);
@@ -223,7 +227,8 @@ void quickSort_rec(float *arr, int *indexes, int low, int high) {
     }
 }
 
-
+/** Implementation of the partition algorithm that is used for QS
+ */
 int partition(float *arr, int *indexes, int low, int high){
     float pivot = arr[indexes[high]];
     int i = low-1, j, temp;
@@ -242,7 +247,6 @@ int partition(float *arr, int *indexes, int low, int high){
 
     return i+1;
 }
-
 
 
 /** fill given matrix with the data from input file */
@@ -268,8 +272,7 @@ void read_data(FILE* fp, float *data_points, char *line, int n, int dim){
 }
 
 
-/**
- * given the eigenvectors matrix [n*n] (as columns), an array [n] that dictates an order on the eigenvalues,
+/** given the eigenvectors matrix [n*n] (as columns), an array [n] that dictates an order on the eigenvalues,
  * n (the mat dimention), k, and a result matrix [n*k],
  * fills the result matrix with the normalized first k eigenvectors as columns
  */
@@ -292,9 +295,7 @@ void normalized_k_eigenvectors(float *eigenvecs, int *indexes, int n, int k, flo
 }
 
 
-
-/**
- * calculate distance between two vectors sqrt(sum_(i=1)^n (v1_i-v2_i)^2) (norm2)
+/** calculate distance between two vectors sqrt(sum_(i=1)^n (v1_i-v2_i)^2) (L2 norm)
  */
 float distance(float *v1, float *v2, int dim,int row_v1, int row_v2){
     int i;
@@ -312,6 +313,9 @@ float distance(float *v1, float *v2, int dim,int row_v1, int row_v2){
 }
 
 
+/**
+ * returns arr[i][j]
+ */
 float get(float* arr, int i, int j, int dim){
     int index;
 
@@ -320,6 +324,9 @@ float get(float* arr, int i, int j, int dim){
 }
 
 
+/**
+ * Sets arr[j][i]=item
+ */
 void set(float* arr, int i, int j, int dim, float item){
     int index;
 

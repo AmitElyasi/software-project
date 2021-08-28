@@ -23,8 +23,10 @@ def Kmeans_pp(datapoints,k):
         centroids.append(new_centroid_indx)
     return centroids
 
+
 def arrToSeq(arr):
     return [item for vec in arr for item in vec]
+
 
 def main():
     np.random.seed(0)
