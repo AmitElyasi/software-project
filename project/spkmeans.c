@@ -2,53 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <Python.h>
 
-/*utils for python c api*/
-int pyMat_to_C_array(PyObject* pyMat, float* mat, int dim){
-    int i,j,m,n;
-    PyObject* pyVec;
-    PyObject* pyItem;
-    /* Is it a list? */
-    if (!PyList_Check(pyMat))
-        return 0;
-    /* Get the size of it and build the output list */
-    n = PyList_Size(pyMat);  /*  Same as in Python len(_list)  */
-    /* Go over each item of the list and reduce it */
-    for (i = 0; i < n; i++) {
-        pyVec = PyList_GetItem(pyMat, i);
-        if (!PyList_Check(pyVec)){  /* We only print lists */
-            return 0;
-        }
-        m = PyList_Size(pyVec);
-        for (j = 0; j < m; j++) {
-            pyItem = PyList_GetItem(pyVec, j);
-            set(mat, i, j , dim, PyFloat_AsDouble(pyItem));
-    
-            if (get(mat, i, j, dim) == -1 && PyErr_Occurred()){
-                /* float too big to fit in a C double, bail out */
-                puts("Error parsing a list to C matrix");
-                return 0;
-            }
-        }
-    }
-    return 1;
-}
-/*return pyList ocject in the shape of (n,m) */
-PyObject* c_array_to_pyMat(double* mat, int n, int m){
-    int i, j;
-    PyObject *pyItem, *pyVec, *pyMat;
-    pyMat = PyList_New(0);
-    for (i=0; i < n; i++){
-        pyVec = PyList_New(0);
-        for (j = 0; j < m; j++){
-            pyItem = Py_BuildValue("d", get(mat, i, j, m));
-            PyList_Append(pyVec, pyItem);
-        }
-        PyList_Append(pyMat, pyVec);
-    }
-    return pyMat;
-}
 
 /*start of Normalized Spectral Clustering implementation*/
 
@@ -281,6 +235,132 @@ void set(float* arr, int i, int j, int dim, float item){
     index = (i*dim + j);
     arr[index] = item;
 }
+
+/* kmeans code*/
+static int kmeans(int k, float* data_points, float* centroids, float* utl ,int max_iter, int dim, int n){
+    short convergece = 1;
+    int i;
+
+    for (i=0; i<max_iter; i++){
+        assign(data_points, centroids, dim, n, k);
+        convergece = re_estimate(data_points, centroids, utl, dim, n, k);
+        if (convergece == 1) {
+            return 0;
+        }
+    }
+    return 0;
+}
+
+
+/*
+ * assigns data points to their closest cluster (measure distance from the centroid)
+ * updates the number of cluster for each data point
+ */
+static void assign(float* data_points, float* clusters, int dim, int n, int k){
+    int int_max = 2147483647;
+    int cluster = 0;
+    int v,c;
+    float min_dis, dis;
+
+    min_dis = int_max;
+    for(v = 0; v < n; v++){
+        for(c = 0;c < k; c++){
+            dis = distance(data_points, clusters, dim, v, c);
+            if( dis <= min_dis){
+                min_dis = dis;
+                cluster = c;
+            }
+        }
+        set(data_points, v, dim, dim + 1, cluster);
+        min_dis = int_max;
+    }
+}
+
+
+/*
+ * re-estimates a centroid for each cluster:
+ * for each cluster calculate the average of the points assign to it,
+ * updates centroids to be the average vector,
+ * returns 1 if the old centroids are equal to the new ones.
+ */
+static short re_estimate(float* data_points, float* clusters,float *utl, int dim, int n, int k) {
+    short isEqual = 1;
+    int i, j;
+    float x;
+
+    zero_mat(utl, dim + 1, k);
+
+    /* sum all vectors for each cluster */
+    for (i = 0; i < n; i++) {
+        j = get(data_points, i, dim, dim+1);
+        vec_sum(utl, data_points, dim, j, i);
+        x = get(utl, j, dim, dim + 1) + 1;
+        set(utl, j, dim, dim + 1, x);
+    }
+
+    /* Divides each sum by the number of vectors to get average */
+    for (i = 0; i < k; i++) {
+        for (j = 0; j < dim; j++) {
+            x = get(utl, i, j, dim+1); 
+            set(utl, i, j, dim + 1, (x / get(utl, i, dim, dim+1)));
+        }
+    }
+
+    /* Compare the old centroids to the new ones */
+    for (i = 0; i < k; i++) {
+        for (j = 0; j < dim; j++) {
+            if (!(((get(clusters, i, j, dim) - get(utl, i, j, dim+1)) < 0.000001) && ((get(clusters, i, j, dim) - get(utl, i, j, dim+1)) > -0.000001))) {
+                isEqual = 0;
+                break;
+            }
+        }
+        if (!isEqual){
+            break;
+        }
+    }
+
+    /* if there is no change in centroid- we have reach convergence */
+    if (isEqual == 1) {
+        return 1;
+    }
+
+    /* copy the new centroids to the old ones place */
+    for (i = 0; i < k; i++) {
+        for (j = 0; j < dim; j++) {
+            x = get(utl, i, j, dim+1);
+            set(clusters, i, j, dim, x);
+        }
+    }
+    return isEqual;
+}
+
+/*
+ * adds vec2 to vec1 coordinate wise
+ */
+static void vec_sum(float* vec1, float* vec2, int dim, int row_vec1, int row_vec2){
+    int i;
+    float sum;
+    
+    for(i = 0;i < dim;i++){
+        sum = get(vec1, row_vec1, i, dim+1) + get(vec2, row_vec2, i, dim+1);
+        set(vec1, row_vec1, i, dim + 1, sum);
+    }
+}
+
+
+/*
+ * zeros a given matrix from row start to row end
+ */
+static void zero_mat(float* clusters , int dim, int n){
+    int i,j;
+
+    for(i = 0; i < n; i++){
+        for(j=0; j < dim; j++){
+            set(clusters, i, j, dim, 0);
+        }
+    }
+}
+
 
 
 int main( int argc, char* argv[]) {
