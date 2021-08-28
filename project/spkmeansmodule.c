@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static PyObject *calc_tranformation_matrix(int k, char *goal, PyObject *pyData_points, int dim, int n){
+static PyObject *calc_transformation_matrix(int k, char *goal, PyObject *pyData_points, int dim, int n){
     float x,*data_points, *weighted_adj_mat, *diagonal_mat, *normalized_laplacian, *V, *T;
     int i,j, index;
     PyObject *item, *pyvec, *pymat;
@@ -52,7 +52,7 @@ static PyObject *calc_tranformation_matrix(int k, char *goal, PyObject *pyData_p
 }
 
 
-static PyObject *calc_tranformation_matrix_capi(PyObject *self, PyObject* args){
+static PyObject *calc_transformation_matrix_capi(PyObject *self, PyObject* args){
     PyObject *pyData_points, *pyCentroid;
     int k, dim, n, max_iter;
     char *goal;
