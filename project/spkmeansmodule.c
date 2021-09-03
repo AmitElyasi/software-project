@@ -106,11 +106,16 @@ static PyObject *calc_transformation_matrix(int k, char *goal, PyObject *pyData_
     if(k == 0){
         k = calc_eiganvalue_gap;
     }
-    T = malloc(sizeof(float) * n * k);
+       T = malloc(sizeof(float) * n * k);
     free(normalized_laplacian);
     free(V);
     normalized_k_eigonvectors(indexes, n, k, T);
-    return c_array_to_pyMat(T, n, k);
+    pymat = c_array_to_pyMat(T, n, k);
+    free(eigonvalues);
+    free(indexes);
+    free(T);
+    
+    return pymat; 
 }
 
 
