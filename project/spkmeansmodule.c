@@ -3,10 +3,10 @@
 #include "spkmeans.h"
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <string.h>
 
 /*utils functions*/
-int pyMat_to_C_array(PyObject* pyMat, float* mat, int dim){
+static int pyMat_to_C_array(PyObject* pyMat, float* mat, int dim){
     int i,j,m,n;
     PyObject* pyVec;
     PyObject* pyItem;
@@ -24,8 +24,8 @@ int pyMat_to_C_array(PyObject* pyMat, float* mat, int dim){
         m = PyList_Size(pyVec);
         for (j = 0; j < m; j++) {
             pyItem = PyList_GetItem(pyVec, j);
-            set(mat, i, j , dim, PyFloat_AsDouble(pyItem));
-
+            set(mat, i, j, dim, PyFloat_AsDouble(pyItem));
+    
             if (get(mat, i, j, dim) == -1 && PyErr_Occurred()){
                 /* float too big to fit in a C double, bail out */
                 puts("Error parsing a list to C matrix");
@@ -36,7 +36,7 @@ int pyMat_to_C_array(PyObject* pyMat, float* mat, int dim){
     return 1;
 }
 /*return pyList ocject in the shape of (n,m) */
-PyObject* c_array_to_pyMat(float* mat, int n, int m){
+static PyObject* c_array_to_pyMat(float* mat, int n, int m){
     int i, j;
     PyObject *pyItem, *pyVec, *pyMat;
     pyMat = PyList_New(0);
@@ -52,74 +52,51 @@ PyObject* c_array_to_pyMat(float* mat, int n, int m){
 }
 
 
-static PyObject *calc_transformation_matrix(int k, char *goal, PyObject *pyData_points, int dim, int n){
-    float x,*data_points, *weighted_adj_mat, *diagonal_mat, *normalized_laplacian, *eigonvalues, *V, *T;
-    int i,j, index,*indexes;
+static PyObject *calc_tranformation_matrix(int k, char *goal, PyObject *pyData_points, int dim, int n){
+    float x,*data_points,*target_matrix;
+    int rows,cols, index,*indexes;
     PyObject *item, *pyvec, *pymat;
 
     data_points = malloc(sizeof(float) * n * dim);
-    weighted_adj_mat = malloc(sizeof(float) * n * n);
     
     /*convert python mat to c array*/
-    pyMat_to_C_array(pyData_points, weighted_adj_mat, n);
-    if(!strcmp(goal, "jacobi")){
-        form_weighted_adj_mat(weighted_adj_mat, data_points, dim, n);
-        if(strcmp(goal, "wam")){
-            return c_array_to_pyMat(weighted_adj_mat, n, n);
-        }
-        diagonal_mat = malloc(sizeof(float) * n);
-        form_diagonal_mat(diagonal_mat, weighted_adj_mat, n);
-        if(strcmp(goal, "ddg")){
-            return c_array_to_pyMat(diagonal_mat, n, n);
-        }
-        normalized_laplacian = malloc(sizeof(float) * n * n);
-        calc_normalized_laplacian(normalized_laplacian, diagonal_mat, weighted_adj_mat, dim);
-        if(strcmp(goal, "lnorm")){
-            return c_array_to_pyMat(normalized_laplacian, n, n);
-        }
-        free(weighted_adj_mat);
-        free(diagonal_mat);
+    pyMat_to_C_array(pyData_points, data_points, dim);
+
+    if(strcmp(goal, "wam")){
+        target_matrix = wam(data_points, n, dim);
+        rows = n;
+        cols = n;
     }
-    jacobi_algorithm_for_eigenvalues(normalized_laplacian, V, n);
-    if(strcmp(goal,"jacobi")){
-        pymat = PyList_New(0);
-        pyvec = PyList_New(0);
-        for(i=0;i<n;i++){
-            item = Py_BuildValue("d", get(normalized_laplacian, i, i, n));
-            PyList_Append(pyvec, item);
-        }
-        PyList_Append(pymat,pyvec);
-        for (i=0;i<n; i++){
-            pyvec = PyList_New(0);
-            for (j=0;j<n;j++){
-                item = Py_BuildValue("d", get(V, i, j, n));
-                PyList_Append(pyvec, item);
-            }
-            PyList_Append(pymat, pyvec);
-        }
-        return pymat;
+    else if(strcmp(goal, "ddg")){
+        target_matrix = ddg(data_points, n, dim);
+        rows = 1;
+        cols = n;
     }
-    eigonvalues = malloc(sizeof(float) *n);
-    indexes = malloc(sizeof(int) * n);
-    diag_to_array(normalized_laplacian, eigonvalues);
-    quickSort_indexes(eigonvalues, indexes, n);
-    if(k == 0){
-        k = calc_eiganvalue_gap;
+    else if(strcmp(goal, "lnorm")){
+        target_matrix = lnorm(data_points, n, dim);
+        rows = n;
+        cols = n;
     }
-       T = malloc(sizeof(float) * n * k);
-    free(normalized_laplacian);
-    free(V);
-    normalized_k_eigonvectors(indexes, n, k, T);
-    pymat = c_array_to_pyMat(T, n, k);
-    free(eigonvalues);
-    free(indexes);
-    free(T);
+    else if(strcmp(goal, "jacobi")){
+        target_matrix = jacobi(data_points, n);
+        rows = (n+1);
+        cols = n;
+    }else{
+        target_matrix = spk(data_points, n, dim, &k);
+        rows = k;
+        cols = k;
+    }
+
+
+
+    pymat = c_array_to_pyMat(target_matrix, rows, cols);
+    free(target_matrix);
     
     return pymat; 
 }
 
 
-static PyObject *calc_transformation_matrix_capi(PyObject *self, PyObject* args){
+static PyObject *calc_tranformation_matrix_capi(PyObject *self, PyObject* args){
     PyObject *pyData_points, *pyCentroid;
     int k, dim, n, max_iter;
     char *goal;
@@ -134,7 +111,7 @@ static PyObject *calc_transformation_matrix_capi(PyObject *self, PyObject* args)
     
 }
 
-static PyObject * fit_c(int k, PyObject *pyData_points, PyObject *pyCentroid, int max_iter, int n){
+static PyObject *fit_c(int k, PyObject *pyData_points, PyObject *pyCentroid, int max_iter, int n){
     float *data_points, *centroid, *utl,x;
     Py_ssize_t index;
     int i,j;
