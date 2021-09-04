@@ -7,7 +7,7 @@ setup(
     ext_modules=[
         Extension(
             'spkmeans',
-            ['spkmeans.c'],
+            ['spkmeans.c', 'spkmeansmodule.c'],
         ),
     ]
 
