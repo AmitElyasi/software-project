@@ -563,7 +563,9 @@ void zero_mat(float* clusters , int dim, int n){
     }
 }
 
-/*return target matrix for goal == "wam" */
+/**
+ * return target matrix for goal == "wam"
+ */
 float *wam(float *data_points, int n, int dim){
     void form_weighted_adj_mat(float *, float *, int, int);
     float *target_matrix;
@@ -684,15 +686,21 @@ int main( int argc, char* argv[]) {
         printf("invalid input");
         return 1;
     }
-    /* reading data form arguments */
+    // reading data form arguments
     k = strtol(argv[1], NULL, 10);
     goal = argv[2];
     f = fopen(argv[3],"r");
-    bOfFile = ftell(f);/*save the address of the beginning of the file */
+
+    // save the address of the beginning of the file
+    bOfFile = ftell(f);
     n = num_of_lines(f);
-    fseek(f, bOfFile, SEEK_SET);/*set the file position back to the beginning */
+
+    // set the file position back to the beginning
+    fseek(f, bOfFile, SEEK_SET);
     dim = num_of_columns(stdin);
-    fseek(stdin, bOfFile, SEEK_SET);/*set the file position back to the beginning */
+
+    // set the file position back to the beginning
+    fseek(stdin, bOfFile, SEEK_SET);
     line = malloc(sizeof(char) * (30*dim));
 
     // build matrix that contins all the points
@@ -743,7 +751,8 @@ int main( int argc, char* argv[]) {
     }
     kmeans(k, target_matrix, centroids, util , max_iter, k, n);
     print_matrix(centroids, k, k);
-    /* free the memory used */
+
+    // free the memory used
     free(line);
     free(data_points);
     free(target_matrix);
