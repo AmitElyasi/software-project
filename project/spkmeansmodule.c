@@ -86,9 +86,9 @@ static PyObject *calc_tranformation_matrix(int k, char *goal, PyObject *pyData_p
         rows = k;
         cols = k;
     }
-    
-    
-    
+
+
+
     pymat = c_array_to_pyMat(target_matrix, rows, cols);
     free(target_matrix);
     
@@ -134,7 +134,7 @@ static PyObject *fit_c(int k, PyObject *pyData_points, PyObject *pyCentroid, int
     free(utl);
 
     return pyMat;
-} 
+}
 
 
 static PyObject *fit_capi(PyObject* self, PyObject* args){
@@ -148,7 +148,7 @@ static PyObject *fit_capi(PyObject* self, PyObject* args){
         return NULL;
     }
     return fit_c(k, pyData_points, pyCentroid, max_iter, dim, n);
-    
+
 }
 
 /*

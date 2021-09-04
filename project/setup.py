@@ -10,6 +10,5 @@ setup(
             ['spkmeans.c', 'spkmeansmodule.c'],
         ),
     ]
-
 )
 

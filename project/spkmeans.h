@@ -1,4 +1,8 @@
-#include <stdio.h> 
+/**
+ * Functions for Normalized Spectral Clustering implementation
+ */
+
+#include <stdio.h>
 
 
 
@@ -25,6 +29,8 @@ void calc_normalized_laplacian(float *normalized_laplacian, float *diagonal_mat,
  * the indexes of the off-diagonal largest absolute value */
 void indexes_of_max_off_diag(float *mat, int *row, int *col, int dim);
 
+/*find the eigangap heuristic and return the number of cluster*/
+int calc_eiganvalue_gap(float *mat, float *sorted_eiganvalues, int n);
 
 /** given a square matrix (mat) ,
  * the indexes of its off-diagonal largest absolute value (i,j)
