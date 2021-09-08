@@ -236,14 +236,16 @@ void fill_ordered_ints(int *arr, int dim){
 /**
  * given an array- arr, and another array- indexes, both of length dim,
  * fills indexes with integers [0,dim-1] such that their order dictates a sorted order on arr values.
- * (using QuickSort algorithm)
+ * (using stable QuickSort algorithm)
  */
 void quickSort_indexes(float *arr, int *indexes, int dim){
     void fill_ordered_ints(int *, int );
     void quickSort_rec(float*, int*, int, int);
+    void stable(float *, int *, int);
 
     fill_ordered_ints(indexes, dim);
     quickSort_rec(arr, indexes, 0, dim-1);
+    stable(arr, indexes, dim);
 }
 
 /** recursive QuickSort
@@ -281,6 +283,63 @@ int partition(float *arr, int *indexes, int low, int high){
     return i+1;
 }
 
+/**
+ * stables the sort
+ */
+void stable(float *arr, int *indexes, int dim){
+    void arr_int_to_float(float*, int*, int);
+    void sorted_float_to_int(float*, int*, int*, int);
+    void fill_ordered_ints(int *, int );
+    float *float_indexes;
+
+    float_indexes = malloc(sizeof(float ) * (dim));
+    arr_int_to_float(float_indexes, indexes, dim);
+
+    int* ordered_ints;
+    ordered_ints = malloc(sizeof(int) * (dim));
+    fill_ordered_ints(ordered_ints, dim);
+    if(dim<=1){
+        return;
+    }
+    int low=0,high=1;
+    while(high < dim) {
+        while (high + 1 < dim && arr[(int)float_indexes[high+1]] == arr[(int)float_indexes[low]]) {
+            high += 1;
+        }
+        if (arr[(int)float_indexes[high]] != arr[(int)float_indexes[low]]){
+            low += 1;
+            high = low + 1;
+            continue;
+        }
+        quickSort_rec(float_indexes, ordered_ints, low, high);
+        low = high + 1;
+        high = low + 1;
+    }
+    sorted_float_to_int(float_indexes,indexes,ordered_ints,dim);
+
+    free(ordered_ints);
+    free(float_indexes);
+}
+
+/**
+ * convert integers array into floats array
+ */
+void arr_int_to_float(float* f_arr, int* i_arr, int dim){
+    int i;
+    for(i=0; i<dim; i++){
+        f_arr[i] = (float) i_arr[i];
+    }
+}
+
+/**
+ * convert floats array into integers array, and sorts it according the sorted indexes array
+ */
+void sorted_float_to_int(float* f_arr, int* i_arr,int* sorted_indexes, int dim){
+    int i;
+    for(i=0; i<dim; i++){
+        i_arr[i] = (int) f_arr[sorted_indexes[i]];
+    }
+}
 
 /** fill given matrix with the data from input file */
 void read_data(FILE* fp, float *data_points, char *line, int n, int dim){
