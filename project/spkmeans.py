@@ -70,7 +70,7 @@ def main():
     args = sys.argv
 
     # reading arguments
-    if len(args) != 3:
+    if len(args) != 4:
         print("INPUT ERROR:\nthe number of argument is incorrect")
         return 1
     k, goal, file = args[1], args[2], args[3]
@@ -79,10 +79,7 @@ def main():
     except ValueError:
         print("INPUT ERROR:\nk has to be an integer")
         return 1
-    if k <= 0:
-        print("INPUT ERROR:\nk can't be <= 0")
-        return 1
-
+    
     datapoints_table = pd.read_csv(file, header=None)
     datapoints_matrix = datapoints_table.values.tolist()
 
@@ -104,11 +101,15 @@ def main():
     if k == 0:
         k = len(mat[0])
 
+    if k <= 0:
+        print("INPUT ERROR:\nk can't be <= 0")
+        return 1
+
     centroids_indexes = Kmeans_pp(mat, k)
 
     ##### assuming datapoints_matrix is 2dim array
-    datapoints = arrToSeq(datapoints_matrix)
-    centroids = arrToSeq([datapoints_matrix[i] for i in centroids_indexes])
+    # datapoints = arrToSeq(datapoints_matrix)
+    # centroids = arrToSeq([datapoints_matrix[i] for i in centroids_indexes])
 
     ## print the centroid indexes
     # print(",".join(str(indx) for indx in centroids_indexes))

@@ -1,4 +1,3 @@
-
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include "spkmeans.h"
@@ -60,12 +59,15 @@ static PyObject* c_array_to_pyMat(double* mat, int n, int m){
 static PyObject *calc_transformation_matrix(int k, char *goal, PyObject *pyData_points, int dim, int n){
     double *data_points,*target_matrix;
     int rows ,cols;
-    PyObject *item, *pyvec, *pymat;
+    PyObject *pymat;
+
 
     data_points = malloc(sizeof(double) * n * dim);
     
     /*convert python mat to c array*/
     pyMat_to_C_array(pyData_points, data_points, dim);
+    printf("%s \n", goal);
+    print_matrix(data_points, n, dim);
 
     if(strcmp(goal, "wam")){
         target_matrix = wam(data_points, n, dim);
@@ -157,7 +159,7 @@ static PyObject *fit_capi(PyObject* self, PyObject* args){
  * This array tells Python what methods this module has.
  * We will use it in the next structure
  */
-static PyMethodDef spkmeansMethods[] = {
+static PyMethodDef _spkmeansMethods[] = {
     {"calc_transformation_matrix",                   /* the Python method name that will be used */
       (PyCFunction) calc_transformation_matrix_capi, /* the C-function that implements the Python function and returns static PyObject*  */
       METH_VARARGS,           /* flags indicating parameters accepted for this function */
@@ -178,7 +180,7 @@ static struct PyModuleDef moduledef = {
     "spkmeans", /* name of module */
     NULL, /* module documentation, may be NULL */
     -1,  /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
-    spkmeansMethods /* the PyMethodDef array from before containing the methods of the extension */
+    _spkmeansMethods /* the PyMethodDef array from before containing the methods of the extension */
 };
 
 PyMODINIT_FUNC

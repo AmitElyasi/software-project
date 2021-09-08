@@ -1,15 +1,3 @@
-/**
- * Normalized Spectral Clustering implementation
- * Software Project
- *
- * Nizan Shemi
- * 206962912
- *
- * Amit Elyasi
- * 316291434
- *
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -19,14 +7,12 @@
 /*start of Normalized Spectral Clustering implementation*/
 
 /*find the eigangap heuristic and return the number of cluster*/
-
 int calc_eiganvalue_gap(double  *mat, int *sorted_eiganvalues_indexes, int n){
     double *deltas;
     double get(double  *, int, int, int);
     int i,index,next_index,half_n,max = 0,result = 0;
     
     deltas = malloc(sizeof(double ) * n);
-
     for(i=0;i<n-1;i++){
         index = sorted_eiganvalues_indexes[i];
         next_index = sorted_eiganvalues_indexes[i+1];
@@ -36,7 +22,7 @@ int calc_eiganvalue_gap(double  *mat, int *sorted_eiganvalues_indexes, int n){
     for(i=0;i<half_n;i++){
         if(max < deltas[i]){
             max = deltas[i];
-            result = i;
+            result = i+1;
         }
     }
     return result;
@@ -51,7 +37,7 @@ void jacobi_algorithm_for_eigenvalues(double  *A, double  *V, int n){
     void indexes_of_max_off_diag(double  *, int *, int *, int),set(double  *, int, int, int ,double );
     int row,col,i,counter = 0;
     /*if A diagonl metrix we skip the while loop with this starting settings*/
-    off_of_A = 0;
+    off_of_A = 0;  
     off_of_Atag = calc_off_square(A, n);
     epsilon = pow(10, -15);
 
@@ -63,7 +49,7 @@ void jacobi_algorithm_for_eigenvalues(double  *A, double  *V, int n){
         t = get_t(A, row, col, n);
         c = get_c(t);
         s = t * c;
-
+        
         /*update A */
         for(i=0;i<n;i++){
             if(i != row && i != col){
@@ -79,7 +65,7 @@ void jacobi_algorithm_for_eigenvalues(double  *A, double  *V, int n){
         a_jj = get(A, col, col, n);
         a_ij = get(A, row, col, n);
         set(A, row, row, n, (c * c) * a_ii + (s * s) * a_jj - 2 * s * c * a_ij);
-        set(A, col, col, n, (s * s) * a_ii + (c * c) * a_jj + 2 * s * c * a_ij);
+        set(A, col, col, n, pow(s,2) * a_ii + (c * c) * a_jj + 2 * s * c * a_ij);
         set(A, row, col, n, ((c * c) - (s * s)) * a_ij + s * c * (a_ii - a_jj));
         set(A, col, row, n, ((c * c) - (s * s)) * a_ij + s * c * (a_ii - a_jj));
             
@@ -92,8 +78,8 @@ void jacobi_algorithm_for_eigenvalues(double  *A, double  *V, int n){
             set(V, i, row, n, c * val_row  - s * val_col);
             set(V, i, col, n, c * val_col + s * val_row);
         }
-
-    }
+        
+    }    
 }
 
 /*initial V to the uint matrix*/
@@ -129,7 +115,7 @@ void form_weighted_adj_mat(double  *mat, double  *data_points, int dim, int n){
     double  distance(double  * , double  *, int, int, int),get(double  *,int, int, int),w;
     void set(double  *, int, int, int, double );
     int i,j;
-
+    
     for(i = 0;i<n;i++){
         for(j=0;j<n;j++){
             if(i == j){
@@ -254,7 +240,6 @@ void quickSort_indexes(double  *arr, int *indexes, int dim){
     void fill_ordered_ints(int *, int );
     void quickSort_rec(double *, int*, int, int);
     
-
     fill_ordered_ints(indexes, dim);
     quickSort_rec(arr, indexes, 0, dim-1);
 }
@@ -265,7 +250,7 @@ void quickSort_rec(double  *arr, int *indexes, int low, int high) {
     void quickSort_rec(double *, int *, int, int);
     int partition(double  *, int *, int, int);
     int mid = 0;
-
+    
     if (low < high) {
         mid = partition(arr, indexes, low, high);
         quickSort_rec(arr, indexes, low, mid - 1);
@@ -368,7 +353,7 @@ void print_matrix(double * mat, int row, int col){
         for(j = 0;j<col-1;j++){
             if(dag == 1){
                 if(i == j){
-                    printf("%0.4f,", mat[i]);
+                    printf("%0.4f,", mat[i]);    
                 }else{
                     printf("%0.4f,", 0.0);
                 }
@@ -378,7 +363,7 @@ void print_matrix(double * mat, int row, int col){
         }
         if(dag == 1){
             if(i == j){
-                printf("%0.4f\n", mat[i]);
+                printf("%0.4f\n", mat[i]);    
             }else{
                     printf("%0.4f\n", 0.0);
             }
@@ -397,7 +382,6 @@ void normalized_k_eigenvectors(double  *eigenvecs, int *indexes, int n, int k, d
     double get(double  *, int, int, int);
     void set(double  *, int, int, int, double );
     int i, j, t;
-
     double sum = 0;
 
     for(i=0;i<k;i++){
@@ -453,10 +437,8 @@ double kmeans_distance(double  *v1, double  *v2, int dim,int row_v1, int row_v2)
  */
 double get(double * arr, int i, int j, int dim){
     int index;
-    double x;
 
     index = (i*dim + j);
-    x = arr[index];
     return arr[index];
 }
 
@@ -472,18 +454,16 @@ void set(double * arr, int i, int j, int dim, double  item){
 }
 
 /* kmeans code*/
-
 int kmeans(int k, double  *data_points, double  *centroids, double  *utl ,int max_iter, int dim, int n){
     void assign(double  *, double  *, int, int, int);
     short re_estimate(double  *,double  *, double  *, int , int, int);
     short convergece = 1;
-
     int i;
 
     for (i=0; i<max_iter; i++){
         assign(data_points, centroids, dim, n, k);
-        convergence = re_estimate(data_points, centroids, utl, dim, n, k);
-        if (convergence == 1) {
+        convergece = re_estimate(data_points, centroids, utl, dim, n, k);
+        if (convergece == 1) {
             return 0;
         }
     }
@@ -542,7 +522,7 @@ short re_estimate(double * data_points, double * clusters,double  *utl, int dim,
     /* Divides each sum by the number of vectors to get average */
     for (i = 0; i < k; i++) {
         for (j = 0; j < dim; j++) {
-            x = get(utl, i, j, dim+1);
+            x = get(utl, i, j, dim+1); 
             set(utl, i, j, dim + 1, (x / get(utl, i, dim, dim+1)));
         }
     }
@@ -581,7 +561,7 @@ short re_estimate(double * data_points, double * clusters,double  *utl, int dim,
 void vec_sum(double * vec1, double * vec2, int dim, int row_vec1, int row_vec2){
     int i;
     void set(double  *, int , int, int, double );
-    double sum,get(double  *, int, int, int);
+    double  sum,get(double  *, int, int, int);
     
     for(i = 0;i < dim;i++){
         sum = get(vec1, row_vec1, i, dim+1) + get(vec2, row_vec2, i, dim+1);
@@ -595,8 +575,8 @@ void vec_sum(double * vec1, double * vec2, int dim, int row_vec1, int row_vec2){
  */
 void zero_mat(double * clusters , int dim, int n){
     int i,j;
-    void set(double *, int , int, int, double );
-
+    void set(double  *, int , int, int, double );
+    
     for(i = 0; i < n; i++){
         for(j=0; j < dim; j++){
             set(clusters, i, j, dim, 0);
@@ -620,10 +600,11 @@ double *ddg(double  *data_points,int n, int dim){
     void form_diagonal_mat(double  *, double  *, int); 
     double  *target_diagnoal, *weighted_adj_mat, *wam(double  *, int, int);
 
+
     target_diagnoal = malloc(sizeof(double ) * n);
     weighted_adj_mat = wam(data_points, n, dim);
     form_diagonal_mat(target_diagnoal, weighted_adj_mat, n);
-
+    
     free(weighted_adj_mat);
 
     return target_diagnoal;
@@ -645,7 +626,7 @@ double *lnorm(double  *data_points, int n, int dim){
 
     free(weighted_adj_mat);
     free(diagonal_mat);
-
+    
     return target_matrix;
 }
 
@@ -682,6 +663,7 @@ double *spk(double  *data_points, int n , int dim, int *k){
     void diag_to_array(double  *, double  *, int),quickSort_indexes(double  *, int *, int)
     ,normalized_k_eigenvectors(double  *, int *, int, int, double  *);
     int *indexes;
+
     
     V = malloc(sizeof(double ) * n * n);
     indexes = malloc(sizeof(int) * n);
@@ -695,7 +677,7 @@ double *spk(double  *data_points, int n , int dim, int *k){
     print_matrix(V, n, n);
     diag_to_array(normalized_laplacian, eigonvalues, n);
     quickSort_indexes(eigonvalues, indexes, n);
-
+    
     if(*k == 0){
         *k = calc_eiganvalue_gap(normalized_laplacian, indexes, n);
     }
@@ -707,12 +689,11 @@ double *spk(double  *data_points, int n , int dim, int *k){
     free(indexes);
     free(eigonvalues);
     free(V);
-
+    
     return traget_matrix;
 }
 
 int main( int argc, char* argv[]) {
-
     void print_matrix(double *, int, int), read_data(FILE*, double  *, char *, int, int);
     int kmeans(int , double  *, double  *, double  *, int, int ,int); 
     int max_iter, dim, k, n,rows,cols,i,j;
@@ -737,7 +718,7 @@ int main( int argc, char* argv[]) {
     dim = num_of_columns(f);
     fseek(f, bOfFile, SEEK_SET);/*set the file position back to the beginning */
     line = malloc(sizeof(char) * (30*dim));
-
+    
     /* build matrix that contins all the points */
     data_points = malloc(sizeof(double ) * dim * n);
     read_data(f, data_points, line, n, dim);
@@ -770,7 +751,7 @@ int main( int argc, char* argv[]) {
     }
     if(strcmp(goal, "spk")){
         print_matrix(target_matrix, rows, cols);
-
+        
         free(line);
         free(data_points);
         free(target_matrix);
@@ -783,7 +764,7 @@ int main( int argc, char* argv[]) {
         for(j=0;j<k;j++){
             set(centroids, i, j, k, get(target_matrix, i, j, (k+1)));
         }
-    }
+    }    
     kmeans(k, target_matrix, centroids, util , max_iter, k, n);
     print_matrix(centroids, k, k);
     /* free the memory used */
