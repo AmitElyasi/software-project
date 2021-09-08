@@ -1,3 +1,4 @@
+
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include "spkmeans.h"
@@ -5,13 +6,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-static int pyMat_to_C_array(PyObject*, float*, int);
-static PyObject* c_array_to_pyMat(float*, int, int);
-static PyObject *calc_transformation_matrix_capi(PyObject*, PyObject*);
+static int pyMat_to_C_array(PyObject*, double*, int);
+static PyObject* c_array_to_pyMat(double*, int, int);
 
 
 /*utils functions*/
-static int pyMat_to_C_array(PyObject* pyMat, float* mat, int dim){
+static int pyMat_to_C_array(PyObject* pyMat, double* mat, int dim){
     int i,j,m,n;
     PyObject* pyVec = PyList_GetItem(pyMat, 0);
     PyObject* pyItem = PyList_GetItem(pyVec, 0);
@@ -41,7 +41,7 @@ static int pyMat_to_C_array(PyObject* pyMat, float* mat, int dim){
     return 1;
 }
 /*return pyList ocject in the shape of (n,m) */
-static PyObject* c_array_to_pyMat(float* mat, int n, int m){
+static PyObject* c_array_to_pyMat(double* mat, int n, int m){
     int i, j;
     PyObject *pyItem, *pyVec, *pyMat;
     pyMat = PyList_New(0);
@@ -58,11 +58,11 @@ static PyObject* c_array_to_pyMat(float* mat, int n, int m){
 
 
 static PyObject *calc_transformation_matrix(int k, char *goal, PyObject *pyData_points, int dim, int n){
-    float *data_points,*target_matrix;
+    double *data_points,*target_matrix;
     int rows ,cols;
     PyObject *item, *pyvec, *pymat;
 
-    data_points = malloc(sizeof(float) * n * dim);
+    data_points = malloc(sizeof(double) * n * dim);
     
     /*convert python mat to c array*/
     pyMat_to_C_array(pyData_points, data_points, dim);
@@ -116,12 +116,12 @@ static PyObject *calc_transformation_matrix_capi(PyObject *self, PyObject* args)
 }
 
 static PyObject *fit_c(int k, PyObject *pyData_points, PyObject *pyCentroid, int max_iter, int n){
-    float *data_points, *centroid, *utl;
+    double *data_points, *centroid, *utl;
     PyObject *pyMat;
 
-    data_points = malloc(sizeof(float) *((k+1) *n));
-    centroid = malloc(sizeof(float) * (k * k));
-    utl = malloc(sizeof(float) * (k * (k+1)));
+    data_points = malloc(sizeof(double) *((k+1) *n));
+    centroid = malloc(sizeof(double) * (k * k));
+    utl = malloc(sizeof(double) * (k * (k+1)));
 
     /*convert python lists : pyData_points and pyCentroid to c arrays*/
     pyMat_to_C_array(pyData_points, data_points, k);
