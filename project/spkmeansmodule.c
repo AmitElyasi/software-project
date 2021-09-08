@@ -5,11 +5,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int pyMat_to_C_array(PyObject*, float*, int);
+static PyObject* c_array_to_pyMat(float*, int, int);
+static PyObject *calc_transformation_matrix_capi(PyObject*, PyObject*);
+
+
 /*utils functions*/
 static int pyMat_to_C_array(PyObject* pyMat, float* mat, int dim){
     int i,j,m,n;
-    PyObject* pyVec;
-    PyObject* pyItem;
+    PyObject* pyVec = PyList_GetItem(pyMat, 0);
+    PyObject* pyItem = PyList_GetItem(pyVec, 0);
     /* Is it a list? */
     if (!PyList_Check(pyMat))
         return 0;
@@ -28,7 +33,7 @@ static int pyMat_to_C_array(PyObject* pyMat, float* mat, int dim){
     
             if (get(mat, i, j, dim) == -1 && PyErr_Occurred()){
                 /* float too big to fit in a C double, bail out */
-                puts("Error parsing a list to C matrix");
+                puts("An Error Has Occured");
                 return 0;
             }
         }
@@ -52,9 +57,9 @@ static PyObject* c_array_to_pyMat(float* mat, int n, int m){
 }
 
 
-static PyObject *calc_tranformation_matrix(int k, char *goal, PyObject *pyData_points, int dim, int n){
-    float x,*data_points,*target_matrix;
-    int rows,cols, index,*indexes;
+static PyObject *calc_transformation_matrix(int k, char *goal, PyObject *pyData_points, int dim, int n){
+    float *data_points,*target_matrix;
+    int rows ,cols;
     PyObject *item, *pyvec, *pymat;
 
     data_points = malloc(sizeof(float) * n * dim);
@@ -96,9 +101,9 @@ static PyObject *calc_tranformation_matrix(int k, char *goal, PyObject *pyData_p
 }
 
 
-static PyObject *calc_tranformation_matrix_capi(PyObject *self, PyObject* args){
-    PyObject *pyData_points, *pyCentroid;
-    int k, dim, n, max_iter;
+static PyObject *calc_transformation_matrix_capi(PyObject *self, PyObject* args){
+    PyObject *pyData_points;
+    int k, dim, n;
     char *goal;
     if(!PyArg_ParseTuple(args, "isOii", &k,
                                         &goal,
@@ -107,15 +112,12 @@ static PyObject *calc_tranformation_matrix_capi(PyObject *self, PyObject* args){
                                         &n)){
         return NULL;
     }
-    return calc_tranformation_matrix(k, goal, pyData_points, dim, n);
-    
+    return calc_transformation_matrix(k, goal, pyData_points, dim, n);
 }
 
 static PyObject *fit_c(int k, PyObject *pyData_points, PyObject *pyCentroid, int max_iter, int n){
-    float *data_points, *centroid, *utl,x;
-    Py_ssize_t index;
-    int i,j;
-    PyObject *item, *pyMat;
+    float *data_points, *centroid, *utl;
+    PyObject *pyMat;
 
     data_points = malloc(sizeof(float) *((k+1) *n));
     centroid = malloc(sizeof(float) * (k * k));
@@ -139,7 +141,7 @@ static PyObject *fit_c(int k, PyObject *pyData_points, PyObject *pyCentroid, int
 
 static PyObject *fit_capi(PyObject* self, PyObject* args){
     PyObject *pyData_points, *pyCentroid;
-    int k, dim, n, max_iter;
+    int k, n, max_iter;
     if(!PyArg_ParseTuple(args, "iOOii", &k,
                                         &pyData_points,
                                         &pyCentroid,
@@ -147,7 +149,7 @@ static PyObject *fit_capi(PyObject* self, PyObject* args){
                                         &n)){
         return NULL;
     }
-    return fit_c(k, pyData_points, pyCentroid, max_iter, dim, n);
+    return fit_c(k, pyData_points, pyCentroid, max_iter, n);
 
 }
 
@@ -156,8 +158,8 @@ static PyObject *fit_capi(PyObject* self, PyObject* args){
  * We will use it in the next structure
  */
 static PyMethodDef spkmeansMethods[] = {
-    {"calc_tranformation_matrix",                   /* the Python method name that will be used */
-      (PyCFunction) calc_tranformation_matrix_capi, /* the C-function that implements the Python function and returns static PyObject*  */
+    {"calc_transformation_matrix",                   /* the Python method name that will be used */
+      (PyCFunction) calc_transformation_matrix_capi, /* the C-function that implements the Python function and returns static PyObject*  */
       METH_VARARGS,           /* flags indicating parameters accepted for this function */
       PyDoc_STR("calcu")}, /*  The docstring for the function */
     {"fit",                   /* the Python method name that will be used */

@@ -90,7 +90,7 @@ def main():
         print(f"INPUT ERROR:\nthere are less or equal to {k} data points")
         return False
 
-    mat = kmeans.calc_tranformation_matrix(k, goal, datapoints_matrix, len(datapoints_matrix[0]),
+    mat = kmeans.calc_transformation_matrix(k, goal, datapoints_matrix, len(datapoints_matrix[0]),
                                            len(datapoints_matrix))
 
     if goal != "spk" and goal != "ddg":
@@ -114,7 +114,7 @@ def main():
     # print(",".join(str(indx) for indx in centroids_indexes))
 
     # find the final centroids using K-means algorithm
-    centroids = kmeans.fit(k, datapoints, centroids, 300, len(datapoints_matrix[0]), len(datapoints_matrix))
+    centroids = kmeans.fit(k, datapoints, centroids, 300, len(datapoints_matrix))
     print_mat(centroids)
 
 
