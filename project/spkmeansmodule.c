@@ -5,13 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-static int pyMat_to_C_array(PyObject*, float*, int);
-static PyObject* c_array_to_pyMat(float*, int, int);
-static PyObject *calc_transformation_matrix_capi(PyObject*, PyObject*);
+static int pyMat_to_C_array(PyObject*, double*, int);
+static PyObject* c_array_to_pyMat(double*, int, int);
 
 
 /*utils functions*/
-static int pyMat_to_C_array(PyObject* pyMat, float* mat, int dim){
+static int pyMat_to_C_array(PyObject* pyMat, double* mat, int dim){
     int i,j,m,n;
     PyObject* pyVec = PyList_GetItem(pyMat, 0);
     PyObject* pyItem = PyList_GetItem(pyVec, 0);
@@ -41,7 +40,7 @@ static int pyMat_to_C_array(PyObject* pyMat, float* mat, int dim){
     return 1;
 }
 /*return pyList ocject in the shape of (n,m) */
-static PyObject* c_array_to_pyMat(float* mat, int n, int m){
+static PyObject* c_array_to_pyMat(double* mat, int n, int m){
     int i, j;
     PyObject *pyItem, *pyVec, *pyMat;
     pyMat = PyList_New(0);
@@ -58,14 +57,17 @@ static PyObject* c_array_to_pyMat(float* mat, int n, int m){
 
 
 static PyObject *calc_transformation_matrix(int k, char *goal, PyObject *pyData_points, int dim, int n){
-    float *data_points,*target_matrix;
+    double *data_points,*target_matrix;
     int rows ,cols;
-    PyObject *item, *pyvec, *pymat;
+    PyObject *pymat;
 
-    data_points = malloc(sizeof(float) * n * dim);
+
+    data_points = malloc(sizeof(double) * n * dim);
     
     /*convert python mat to c array*/
     pyMat_to_C_array(pyData_points, data_points, dim);
+    printf("%s \n", goal);
+    print_matrix(data_points, n, dim);
 
     if(strcmp(goal, "wam")){
         target_matrix = wam(data_points, n, dim);
@@ -116,12 +118,12 @@ static PyObject *calc_transformation_matrix_capi(PyObject *self, PyObject* args)
 }
 
 static PyObject *fit_c(int k, PyObject *pyData_points, PyObject *pyCentroid, int max_iter, int n){
-    float *data_points, *centroid, *utl;
+    double *data_points, *centroid, *utl;
     PyObject *pyMat;
 
-    data_points = malloc(sizeof(float) *((k+1) *n));
-    centroid = malloc(sizeof(float) * (k * k));
-    utl = malloc(sizeof(float) * (k * (k+1)));
+    data_points = malloc(sizeof(double) *((k+1) *n));
+    centroid = malloc(sizeof(double) * (k * k));
+    utl = malloc(sizeof(double) * (k * (k+1)));
 
     /*convert python lists : pyData_points and pyCentroid to c arrays*/
     pyMat_to_C_array(pyData_points, data_points, k);
@@ -157,7 +159,7 @@ static PyObject *fit_capi(PyObject* self, PyObject* args){
  * This array tells Python what methods this module has.
  * We will use it in the next structure
  */
-static PyMethodDef spkmeansMethods[] = {
+static PyMethodDef _spkmeansMethods[] = {
     {"calc_transformation_matrix",                   /* the Python method name that will be used */
       (PyCFunction) calc_transformation_matrix_capi, /* the C-function that implements the Python function and returns static PyObject*  */
       METH_VARARGS,           /* flags indicating parameters accepted for this function */
@@ -178,7 +180,7 @@ static struct PyModuleDef moduledef = {
     "spkmeans", /* name of module */
     NULL, /* module documentation, may be NULL */
     -1,  /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
-    spkmeansMethods /* the PyMethodDef array from before containing the methods of the extension */
+    _spkmeansMethods /* the PyMethodDef array from before containing the methods of the extension */
 };
 
 PyMODINIT_FUNC
