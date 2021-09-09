@@ -289,17 +289,19 @@ void stable(double *arr, int *indexes, int dim){
     void sorted_double_to_int(double *, int*, int*, int);
     void fill_ordered_ints(int *, int );
     double *double_indexes;
+    int* ordered_ints;
+    int low=0,high=1;
+    
 
     double_indexes = malloc(sizeof(double ) * (dim));
     arr_int_to_double(double_indexes, indexes, dim);
 
-    int* ordered_ints;
+    
     ordered_ints = malloc(sizeof(int) * (dim));
     fill_ordered_ints(ordered_ints, dim);
     if(dim<=1){
         return;
     }
-    int low=0,high=1;
     while(high < dim) {
         while (high + 1 < dim && arr[(int)double_indexes[high+1]] == arr[(int)double_indexes[low]]) {
             high += 1;
@@ -736,7 +738,7 @@ double *spk(double  *data_points, int n , int dim, int *k){
     if(*k == 0){
         *k = calc_eiganvalue_gap(normalized_laplacian, indexes, n);
     }
-    traget_matrix = malloc(sizeof(double ) * n * (*k+1));
+    traget_matrix = malloc(sizeof(double ) * n * (*k));
     normalized_k_eigenvectors(V, indexes, n, *k, traget_matrix);
 
     free(normalized_laplacian);
@@ -753,8 +755,9 @@ int main( int argc, char* argv[]) {
     int max_iter, dim, k, n,rows,cols,i,j;
     FILE *f;
     long bOfFile;
-    double *target_matrix,*data_points,*centroids,*util,*wam(double  *, int , int),*lnorm(double  *, int , int),*ddg(double  *, int , int)
-          ,*spk(double  *, int , int, int *),*jacobi(double  *, int);
+    double *target_matrix,*data_points,*centroids,*util,*transform_points,
+            *wam(double  *, int , int),*lnorm(double  *, int , int),*ddg(double  *, int , int),
+            *spk(double  *, int , int, int *),*jacobi(double  *, int);
     char *line,*goal;
 
     max_iter = 300;
@@ -811,20 +814,25 @@ int main( int argc, char* argv[]) {
         free(target_matrix);
         return 0;
     }
-
-    centroids = malloc(sizeof(double ) * k * k);
-    util = malloc(sizeof(double ) * k * (k+1));
-    for(i = 0;i<k;i++){
-        for(j=0;j<k;j++){
-            set(centroids, i, j, k, get(target_matrix, i, j, (k+1)));
-        }
-    }    
-    kmeans(k, target_matrix, centroids, util , max_iter, k, n);
-    print_matrix(centroids, k, k);
-    /* free the memory used */
     free(line);
     free(data_points);
+    transform_points = malloc(sizeof(double) * n * (k+1)); 
+    centroids = malloc(sizeof(double ) * k * k);
+    util = malloc(sizeof(double) * k * (k+1));
+    for(i = 0;i<n;i++){
+        for(j=0;j<k;j++){
+            if(i < k){
+                set(centroids, i, j, k, get(target_matrix, i, j, k));
+            }
+            set(transform_points, i, j, (k+1), get(target_matrix, i, j, k));
+        }
+    }    
+    kmeans(k, transform_points, centroids, util , max_iter, k, n);
+    print_matrix(centroids, k, k);
+    /* free the memory used */
+    
     free(target_matrix);
+    free(transform_points);
     free(centroids);
     free(util);
 
