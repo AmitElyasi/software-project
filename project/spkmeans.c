@@ -369,21 +369,29 @@ void sorted_double_to_int(double *d_arr, int *i_arr, int *sorted_indexes, int di
 /**
  * Fill given matrix with the data from input file
  */
-void read_data(FILE *fp, double *data_points, char *line, int n, int dim) {
+void read_data(FILE *fp, double *data_points, char *line, int *n, int *dim) {
     void set(double *, int, int, int, double);
     char *p;
+    long bOfFile;
     int size, i, j;
 
-    size = 50 * dim;
+    bOfFile = ftell(fp);/*save the address of the beginning of the file */
+    *n = num_of_lines(fp);
+    fseek(fp, bOfFile, SEEK_SET);/*set the file position back to the beginning */
+    *dim = num_of_columns(fp);
+    fseek(fp, bOfFile, SEEK_SET);/*set the file position back to the beginning */
+    
+
+    size = 50 * (*dim);
     for (i = 0; i < n; i++) {
 
         /* p is a pointer to a beginning of a line in the file */
         p = fgets(line, size, fp);
 
-        for (j = 0; j < dim; j++) {
+        for (j = 0; j < *dim; j++) {
 
             /* extract double  form the line */
-            set(data_points, i, j, dim, strtod(p, &p));
+            set(data_points, i, j, *dim, strtod(p, &p));
 
             p += 1; /* skip comma */
         }
@@ -825,39 +833,30 @@ void copy_rows(double* result_mat, double* mat_to_copy, int last_row_to_copy, in
 
 int main(int argc, char *argv[]) {
     void print_matrix(double *, int, int);
-    void read_data(FILE *, double *, char *, int, int);
+    void read_data(FILE *, double *, char *, int *, int *);
     void copy_rows(double*, double*, int, int, int);
     int kmeans(int, double *, double *, double *, int, int);
     double *target_matrix, *data_points, *centroids, *util, *transform_points,
             *wam(double *, int, int), *lnorm(double *, int, int), *ddg(double *, int, int),
             *spk(double *, int, int, int *), *jacobi(double *, int);
     Goal get_enum(char*), goal;
-    int dim, k, n, rows, cols, i, j;
+    int dim=0, k, n=0, rows, cols, i, j;
     FILE *f;
-    long bOfFile;
     char *line;
 
     if (argc != 4) {
         printf("invalid input");
         return 1;
     }
-
     /* reading arguments*/
     k = strtol(argv[1], NULL, 10);
     goal = get_enum(argv[2]);
     f = fopen(argv[3], "r");
-    bOfFile = ftell(f);/*save the address of the beginning of the file */
-    n = num_of_lines(f);
-    fseek(f, bOfFile, SEEK_SET);/*set the file position back to the beginning */
-    dim = num_of_columns(f);
-    fseek(f, bOfFile, SEEK_SET);/*set the file position back to the beginning */
     line = malloc(sizeof(char) * (30 * dim));
-
     /* build matrix that contains all the points */
     data_points = malloc(sizeof(double) * dim * n);
-    read_data(f, data_points, line, n, dim);
+    read_data(f, data_points, line, &n, &dim);
     fclose(f);
-
     /*calculate the goal matrix*/
     switch (goal){
         case WAM:
@@ -886,16 +885,13 @@ int main(int argc, char *argv[]) {
             cols = k;
             break;
     };
-
     free(line);
     free(data_points);
-
     if (goal != SPK) {
         print_matrix(target_matrix, rows, cols);
         free(target_matrix);
         return 0;
     }
-
     transform_points = malloc(sizeof(double) * n * (k + 1));
     centroids = malloc(sizeof(double) * k * k);
     util = malloc(sizeof(double) * k * (k + 1));
