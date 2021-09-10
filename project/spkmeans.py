@@ -35,15 +35,20 @@ def Kmeans_pp(datapoints, k):
         centroids.append(new_centroid_indx)
     return centroids
 
+
 def print_mat(mat):
     mat = np.round(mat, 4)
     for i in range(len(mat)):
         if i > 0:
             print("\n", end="")
         for j in range(len(mat[0])):
-            print(format(mat[i][j], ".4f"), end="")
+            if abs(mat[i][j]) >= 0.0001:
+                print(format(mat[i][j], ".4f"), end="")
+            else:
+                print("0.0000", end="")
             if j < len(mat[0]) - 1:
                 print(",", end="")
+
 
 def print_diag(diag):
     diag = np.round(diag, 4)
