@@ -57,7 +57,7 @@ def print_diag(diag):
         if i > 0:
             print("\n", end="")
         for j in range(len(diag)):
-            if i == j and abs(diag[i] >= 0.0001):
+            if (i == j) and (abs(diag[i]) >= 0.0001):
                 print(format(diag[i], ".4f"), end="")
             else:
                 print("0.0000", end="")
@@ -95,7 +95,7 @@ def main():
         return
 
     if goal == "ddg":
-        print_diag(mat)
+        print_diag(mat[0])
         return
 
     if k == 0:
@@ -109,13 +109,11 @@ def main():
 
     ##### assuming datapoints_matrix is 2dim array
     # datapoints = arrToSeq(datapoints_matrix)
-    # centroids = arrToSeq([datapoints_matrix[i] for i in centroids_indexes])
-
+    centroids = [mat[i] for i in centroids_indexes]
     ## print the centroid indexes
-    # print(",".join(str(indx) for indx in centroids_indexes))
-
+    print(",".join(str(indx) for indx in centroids_indexes))    
     # find the final centroids using K-means algorithm
-    centroids = kmeans.fit(k, datapoints, centroids, 300, len(datapoints_matrix))
+    centroids = kmeans.fit(k, mat, centroids, 300, len(datapoints_matrix))
     print_mat(centroids)
 
 

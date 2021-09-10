@@ -236,10 +236,10 @@ void fill_ordered_ints(int *arr, int dim){
  * fills indexes with integers [0,dim-1] such that their order dictates a sorted order on arr values.
  * (using stable QuickSort algorithm)
  */
-void quickSort_indexes(float *arr, int *indexes, int dim){
+void quickSort_indexes(double *arr, int *indexes, int dim){
     void fill_ordered_ints(int *, int );
-    void quickSort_rec(float*, int*, int, int);
-    void stable(float *, int *, int);
+    void quickSort_rec(double*, int*, int, int);
+    void stable(double *, int *, int);
 
     fill_ordered_ints(indexes, dim);
     quickSort_rec(arr, indexes, 0, dim-1);
@@ -248,9 +248,9 @@ void quickSort_indexes(float *arr, int *indexes, int dim){
 
 /** recursive QuickSort
  */
-void quickSort_rec(float *arr, int *indexes, int low, int high) {
-    void quickSort_rec(float*, int *, int, int);
-    int partition(float *, int *, int, int);
+void quickSort_rec(double *arr, int *indexes, int low, int high) {
+    void quickSort_rec(double*, int *, int, int);
+    int partition(double *, int *, int, int);
     int mid = 0;
 
     if (low < high) {
@@ -262,8 +262,8 @@ void quickSort_rec(float *arr, int *indexes, int low, int high) {
 
 /** Implementation of the partition algorithm that is used for QS
  */
-int partition(float *arr, int *indexes, int low, int high){
-    float pivot = arr[indexes[high]];
+int partition(double *arr, int *indexes, int low, int high){
+    double pivot = arr[indexes[high]];
     int i = low-1, j, temp;
 
     for(j=low; j <= high-1; j++){
@@ -284,55 +284,57 @@ int partition(float *arr, int *indexes, int low, int high){
 /**
  * stables the sort
  */
-void stable(float *arr, int *indexes, int dim){
-    void arr_int_to_float(float*, int*, int);
-    void sorted_float_to_int(float*, int*, int*, int);
+void stable(double *arr, int *indexes, int dim){
+    void arr_int_to_double(double *, int*, int);
+    void sorted_double_to_int(double *, int*, int*, int);
     void fill_ordered_ints(int *, int );
-    float *float_indexes;
-
-    float_indexes = malloc(sizeof(float ) * (dim));
-    arr_int_to_float(float_indexes, indexes, dim);
-
+    double *double_indexes;
     int* ordered_ints;
+    int low=0,high=1;
+    
+
+    double_indexes = malloc(sizeof(double ) * (dim));
+    arr_int_to_double(double_indexes, indexes, dim);
+
+    
     ordered_ints = malloc(sizeof(int) * (dim));
     fill_ordered_ints(ordered_ints, dim);
     if(dim<=1){
         return;
     }
-    int low=0,high=1;
     while(high < dim) {
-        while (high + 1 < dim && arr[(int)float_indexes[high+1]] == arr[(int)float_indexes[low]]) {
+        while (high + 1 < dim && arr[(int)double_indexes[high+1]] == arr[(int)double_indexes[low]]) {
             high += 1;
         }
-        if (arr[(int)float_indexes[high]] != arr[(int)float_indexes[low]]){
+        if (arr[(int)double_indexes[high]] != arr[(int)double_indexes[low]]){
             low += 1;
             high = low + 1;
             continue;
         }
-        quickSort_rec(float_indexes, ordered_ints, low, high);
+        quickSort_rec(double_indexes, ordered_ints, low, high);
         low = high + 1;
         high = low + 1;
     }
-    sorted_float_to_int(float_indexes,indexes,ordered_ints,dim);
+    sorted_double_to_int(double_indexes,indexes,ordered_ints,dim);
 
     free(ordered_ints);
-    free(float_indexes);
+    free(double_indexes);
 }
 
 /**
  * convert integers array into floats array
  */
-void arr_int_to_float(float* f_arr, int* i_arr, int dim){
+void arr_int_to_double(double* f_arr, int* i_arr, int dim){
     int i;
     for(i=0; i<dim; i++){
-        f_arr[i] = (float) i_arr[i];
+        f_arr[i] = (double) i_arr[i];
     }
 }
 
 /**
  * convert floats array into integers array, and sorts it according the sorted indexes array
  */
-void sorted_float_to_int(float* f_arr, int* i_arr,int* sorted_indexes, int dim){
+void sorted_double_to_int(double* f_arr, int* i_arr,int* sorted_indexes, int dim){
     int i;
     for(i=0; i<dim; i++){
         i_arr[i] = (int) f_arr[sorted_indexes[i]];
@@ -441,16 +443,17 @@ void normalized_k_eigenvectors(double  *eigenvecs, int *indexes, int n, int k, d
     double get(double  *, int, int, int);
     void set(double  *, int, int, int, double );
     int i, j, t;
-    double sum = 0;
-
-    for(i=0;i<k;i++){
-        j=indexes[i];
-        for (t=0; t < n; t++){
-            sum += get(eigenvecs, t, j, n)*get(eigenvecs, t, j, n);
+    double sum = 0.0;
+    for(i=0;i<n;i++){
+        sum = 0.0;
+        for (t=0; t < k; t++){
+            j = indexes[t];
+            sum += get(eigenvecs, i, j, n)*get(eigenvecs, i, j, n);
         }
         sum = sqrt(sum);
-        for (t=0; t < n; t++){
-            set(result, t, i, (k+1), get(eigenvecs, t, j, n)/sum);
+        for (t=0; t < k; t++){
+            j = indexes[t];
+            set(result, i, t, k, get(eigenvecs, i, j, n)/sum);
         }
     }
 }
@@ -481,13 +484,13 @@ double kmeans_distance(double  *v1, double  *v2, int dim,int row_v1, int row_v2)
     double  x;
     double  get(double  *, int, int, int);
 
-    for(i = 0;i < dim;i++){
+  for(i = 0;i < dim;i++){
         x = (get(v1, row_v1, i, dim + 1)-get(v2, row_v2, i, dim));
         x *= x;
         result += x;
     }
-    sqrt(result);
     return result;
+
 }
 
 
@@ -728,20 +731,14 @@ double *spk(double  *data_points, int n , int dim, int *k){
     indexes = malloc(sizeof(int) * n);
     eigonvalues= malloc(sizeof(double ) * n);
     normalized_laplacian = lnorm(data_points, n, dim);
-    print_matrix(normalized_laplacian, n, n);
-
     form_V(V, n);
     jacobi_algorithm_for_eigenvalues(normalized_laplacian, V, n);
-    print_matrix(normalized_laplacian, n, n);
-    print_matrix(V, n, n);
     diag_to_array(normalized_laplacian, eigonvalues, n);
     quickSort_indexes(eigonvalues, indexes, n);
-    
     if(*k == 0){
         *k = calc_eiganvalue_gap(normalized_laplacian, indexes, n);
     }
-
-    traget_matrix = malloc(sizeof(double ) * n * (*k+1));
+    traget_matrix = malloc(sizeof(double ) * n * (*k));
     normalized_k_eigenvectors(V, indexes, n, *k, traget_matrix);
 
     free(normalized_laplacian);
@@ -758,8 +755,9 @@ int main( int argc, char* argv[]) {
     int max_iter, dim, k, n,rows,cols,i,j;
     FILE *f;
     long bOfFile;
-    double *target_matrix,*data_points,*centroids,*util,*wam(double  *, int , int),*lnorm(double  *, int , int),*ddg(double  *, int , int)
-          ,*spk(double  *, int , int, int *),*jacobi(double  *, int);
+    double *target_matrix,*data_points,*centroids,*util,*transform_points,
+            *wam(double  *, int , int),*lnorm(double  *, int , int),*ddg(double  *, int , int),
+            *spk(double  *, int , int, int *),*jacobi(double  *, int);
     char *line,*goal;
 
     max_iter = 300;
@@ -816,20 +814,25 @@ int main( int argc, char* argv[]) {
         free(target_matrix);
         return 0;
     }
-
-    centroids = malloc(sizeof(double ) * k * k);
-    util = malloc(sizeof(double ) * k * (k+1));
-    for(i = 0;i<k;i++){
-        for(j=0;j<k;j++){
-            set(centroids, i, j, k, get(target_matrix, i, j, (k+1)));
-        }
-    }    
-    kmeans(k, target_matrix, centroids, util , max_iter, k, n);
-    print_matrix(centroids, k, k);
-    /* free the memory used */
     free(line);
     free(data_points);
+    transform_points = malloc(sizeof(double) * n * (k+1)); 
+    centroids = malloc(sizeof(double ) * k * k);
+    util = malloc(sizeof(double) * k * (k+1));
+    for(i = 0;i<n;i++){
+        for(j=0;j<k;j++){
+            if(i < k){
+                set(centroids, i, j, k, get(target_matrix, i, j, k));
+            }
+            set(transform_points, i, j, (k+1), get(target_matrix, i, j, k));
+        }
+    }    
+    kmeans(k, transform_points, centroids, util , max_iter, k, n);
+    print_matrix(centroids, k, k);
+    /* free the memory used */
+    
     free(target_matrix);
+    free(transform_points);
     free(centroids);
     free(util);
 

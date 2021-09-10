@@ -66,35 +66,31 @@ static PyObject *calc_transformation_matrix(int k, char *goal, PyObject *pyData_
     
     /*convert python mat to c array*/
     pyMat_to_C_array(pyData_points, data_points, dim);
-    printf("%s \n", goal);
-    print_matrix(data_points, n, dim);
-
-    if(strcmp(goal, "wam")){
+    
+    if(!strcmp(goal, "wam")){
         target_matrix = wam(data_points, n, dim);
         rows = n;
         cols = n;
     }
-    else if(strcmp(goal, "ddg")){
+    else if(!strcmp(goal, "ddg")){
         target_matrix = ddg(data_points, n, dim);
         rows = 1;
         cols = n;
     }
-    else if(strcmp(goal, "lnorm")){
+    else if(!strcmp(goal, "lnorm")){
         target_matrix = lnorm(data_points, n, dim);
         rows = n;
         cols = n;
     }
-    else if(strcmp(goal, "jacobi")){
+    else if(!strcmp(goal, "jacobi")){
         target_matrix = jacobi(data_points, n);
         rows = (n+1);
         cols = n;
     }else{
         target_matrix = spk(data_points, n, dim, &k);
-        rows = k;
+        rows = n;
         cols = k;
     }
-
-
 
     pymat = c_array_to_pyMat(target_matrix, rows, cols);
     free(target_matrix);
@@ -126,7 +122,7 @@ static PyObject *fit_c(int k, PyObject *pyData_points, PyObject *pyCentroid, int
     utl = malloc(sizeof(double) * (k * (k+1)));
 
     /*convert python lists : pyData_points and pyCentroid to c arrays*/
-    pyMat_to_C_array(pyData_points, data_points, k);
+    pyMat_to_C_array(pyData_points, data_points, k+1);
     pyMat_to_C_array(pyCentroid, centroid, k);
 
     kmeans(k,data_points, centroid, utl, max_iter, k, n);
