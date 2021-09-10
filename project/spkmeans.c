@@ -128,7 +128,7 @@ void form_diagonal_mat(double *diagonal_mat, double *weighted_adj_mat, int n) {
  * given data points, form it's weighted adjacency matrix into mat
  */
 void form_weighted_adj_mat(double *mat, double *data_points, int dim, int n) {
-    double distance(double *, double *, int, int, int)
+    double distance(double *, double *, int, int, int);
     double get(double *, int, int, int), w;
     void set(double *, int, int, int, double);
     int i, j;
@@ -704,7 +704,7 @@ double *ddg(double *data_points, int n, int dim) {
 
 /**
  * Return target matrix for goal == "lnorm"
- * */
+ */
 double *lnorm(double *data_points, int n, int dim) {
     void form_diagonal_mat(double *, double *, int),
             form_weighted_adj_mat(double *, double *, int, int);
@@ -757,7 +757,7 @@ double *jacobi(double *data_points, int n) {
 
 /**
  * Return target matrix T in shape (n,k) when goal == "spk"
- * */
+ */
 double *spk(double *data_points, int n, int dim, int *k) {
     double *target_matrix, *lnorm(double *, int, int), *V,
             *normalized_laplacian, *eigenvalues;
@@ -789,6 +789,8 @@ double *spk(double *data_points, int n, int dim, int *k) {
 
     return target_matrix;
 }
+
+typedef enum {WAM, DDG, LNORM, JACOBI, SPK} Goal;
 
 /**
  * Given string, returns the respective enum (default enum is spk)
@@ -822,7 +824,7 @@ void copy_rows(double* result_mat, double* mat_to_copy, int last_row_to_copy, in
 }
 
 int main(int argc, char *argv[]) {
-    void print_matrix(double *, int, int)
+    void print_matrix(double *, int, int);
     void read_data(FILE *, double *, char *, int, int);
     void copy_rows(double*, double*, int, int, int);
     int kmeans(int, double *, double *, double *, int, int);
@@ -873,7 +875,7 @@ int main(int argc, char *argv[]) {
             rows = n;
             cols = n;
             break;
-        case JACOBI;
+        case JACOBI:
             target_matrix = jacobi(data_points, n);
             rows = (n+1);
             cols = n;

@@ -8,8 +8,8 @@
 static int pyMat_to_C_array(PyObject*, double*, int);
 static PyObject* c_array_to_pyMat(double*, int, int);
 
-
 /*utils functions*/
+
 static int pyMat_to_C_array(PyObject* pyMat, double* mat, int dim){
     int i,j,m,n;
     PyObject* pyVec = PyList_GetItem(pyMat, 0);
@@ -32,14 +32,17 @@ static int pyMat_to_C_array(PyObject* pyMat, double* mat, int dim){
     
             if (get(mat, i, j, dim) == -1 && PyErr_Occurred()){
                 /* float too big to fit in a C double, bail out */
-                puts("An Error Has Occured");
+                printf("An Error Has Occured");
                 return 0;
             }
         }
     }
     return 1;
 }
-/*return pyList ocject in the shape of (n,m) */
+
+/**
+ * return pyList object in the shape of (n,m)
+ */
 static PyObject* c_array_to_pyMat(double* mat, int n, int m){
     int i, j;
     PyObject *pyItem, *pyVec, *pyMat;
@@ -55,49 +58,51 @@ static PyObject* c_array_to_pyMat(double* mat, int n, int m){
     return pyMat;
 }
 
-
-static PyObject *calc_transformation_matrix(int k, char *goal, PyObject *pyData_points, int dim, int n){
+static PyObject *calc_transformation_matrix(int k, char *goal_string, PyObject *pyData_points, int dim, int n){
     double *data_points,*target_matrix;
+    Goal get_enum(char*);
     int rows ,cols;
     PyObject *pymat;
-
 
     data_points = malloc(sizeof(double) * n * dim);
     
     /*convert python mat to c array*/
     pyMat_to_C_array(pyData_points, data_points, dim);
-    
-    if(!strcmp(goal, "wam")){
-        target_matrix = wam(data_points, n, dim);
-        rows = n;
-        cols = n;
-    }
-    else if(!strcmp(goal, "ddg")){
-        target_matrix = ddg(data_points, n, dim);
-        rows = 1;
-        cols = n;
-    }
-    else if(!strcmp(goal, "lnorm")){
-        target_matrix = lnorm(data_points, n, dim);
-        rows = n;
-        cols = n;
-    }
-    else if(!strcmp(goal, "jacobi")){
-        target_matrix = jacobi(data_points, n);
-        rows = (n+1);
-        cols = n;
-    }else{
-        target_matrix = spk(data_points, n, dim, &k);
-        rows = n;
-        cols = k;
-    }
+
+    Goal goal = get_enum(goal_string);
+    switch (goal){
+        case WAM:
+            target_matrix = wam(data_points, n, dim);
+            rows = n;
+            cols = n;
+            break;
+        case DDG:
+            target_matrix = ddg(data_points, n, dim);
+            rows = 1;
+            cols = n;
+            break;
+        case LNORM:
+            target_matrix = lnorm(data_points, n, dim);
+            rows = n;
+            cols = n;
+            break;
+        case JACOBI:
+            target_matrix = jacobi(data_points, n);
+            rows = (n+1);
+            cols = n;
+            break;
+        case SPK:
+            target_matrix = spk(data_points, n, dim, &k);
+            rows = n;
+            cols = k;
+            break;
+    };
 
     pymat = c_array_to_pyMat(target_matrix, rows, cols);
     free(target_matrix);
     
     return pymat; 
 }
-
 
 static PyObject *calc_transformation_matrix_capi(PyObject *self, PyObject* args){
     PyObject *pyData_points;
@@ -113,7 +118,7 @@ static PyObject *calc_transformation_matrix_capi(PyObject *self, PyObject* args)
     return calc_transformation_matrix(k, goal, pyData_points, dim, n);
 }
 
-static PyObject *fit_c(int k, PyObject *pyData_points, PyObject *pyCentroid, int max_iter, int n){
+static PyObject *fit_c(int k, PyObject *pyData_points, PyObject *pyCentroid, int n){
     double *data_points, *centroid, *utl;
     PyObject *pyMat;
 
@@ -125,7 +130,7 @@ static PyObject *fit_c(int k, PyObject *pyData_points, PyObject *pyCentroid, int
     pyMat_to_C_array(pyData_points, data_points, k+1);
     pyMat_to_C_array(pyCentroid, centroid, k);
 
-    kmeans(k,data_points, centroid, utl, max_iter, k, n);
+    kmeans(k,data_points, centroid, utl, k, n);
 
     pyMat = c_array_to_pyMat(centroid, k, k);
 
@@ -136,22 +141,20 @@ static PyObject *fit_c(int k, PyObject *pyData_points, PyObject *pyCentroid, int
     return pyMat;
 }
 
-
 static PyObject *fit_capi(PyObject* self, PyObject* args){
     PyObject *pyData_points, *pyCentroid;
-    int k, n, max_iter;
-    if(!PyArg_ParseTuple(args, "iOOii", &k,
+    int k, n;
+    if(!PyArg_ParseTuple(args, "iOOi", &k,
                                         &pyData_points,
                                         &pyCentroid,
-                                        &max_iter,
                                         &n)){
         return NULL;
     }
-    return fit_c(k, pyData_points, pyCentroid, max_iter, n);
+    return fit_c(k, pyData_points, pyCentroid, n);
 
 }
 
-/*
+/**
  * This array tells Python what methods this module has.
  * We will use it in the next structure
  */

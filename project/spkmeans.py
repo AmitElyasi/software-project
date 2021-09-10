@@ -1,7 +1,6 @@
 """
-Kmeans_pp implementation in Python
-finding a good initialization of centroids for the "kmeans" algorithm
-Software Project ex. 2
+Normalized Spectral Clustering implementation (using C API)
+Software Project
 
 Nizan Shemi
 206962912
@@ -26,7 +25,8 @@ def Kmeans_pp(datapoints, k):
     min_dists = np.zeros(n)
     for z in range(k - 1):
         for i in range(n):
-            dists[i][z] = np.inner(datapoints[i] - datapoints[centroids[z]], datapoints[i] - datapoints[centroids[z]])
+            dists[i][z] = np.inner(datapoints[i] - datapoints[centroids[z]],
+                                   datapoints[i] - datapoints[centroids[z]])
             min_dists[i] = min(dists[i][0:z + 1])
         dists_sum = np.sum(min_dists)
         probabilities = [dist / dists_sum for dist in min_dists]
@@ -34,11 +34,6 @@ def Kmeans_pp(datapoints, k):
         new_centroid_indx = np.random.choice(n, 1, p=probabilities)[0]
         centroids.append(new_centroid_indx)
     return centroids
-
-
-def arrToSeq(arr):
-    return [item for vec in arr for item in vec]
-
 
 def print_mat(mat):
     mat = np.round(mat, 4)
@@ -49,7 +44,6 @@ def print_mat(mat):
             print(format(mat[i][j], ".4f"), end="")
             if j < len(mat[0]) - 1:
                 print(",", end="")
-
 
 def print_diag(diag):
     diag = np.round(diag, 4)
@@ -107,13 +101,13 @@ def main():
 
     centroids_indexes = Kmeans_pp(mat, k)
 
-    ##### assuming datapoints_matrix is 2dim array
-    # datapoints = arrToSeq(datapoints_matrix)
     centroids = [mat[i] for i in centroids_indexes]
-    ## print the centroid indexes
+
+    # print the centroid indexes
     print(",".join(str(indx) for indx in centroids_indexes))    
-    # find the final centroids using K-means algorithm
-    centroids = kmeans.fit(k, mat, centroids, 300, len(datapoints_matrix))
+
+    # find the final centroids using K-means algorithm, and print them
+    centroids = kmeans.fit(k, mat, centroids, len(datapoints_matrix))
     print_mat(centroids)
 
 
