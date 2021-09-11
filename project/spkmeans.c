@@ -369,21 +369,29 @@ void sorted_double_to_int(double *d_arr, int *i_arr, int *sorted_indexes, int di
 /**
  * Fill given matrix with the data from input file
  */
-void read_data(FILE *fp, double *data_points, char *line, int n, int dim) {
+void read_data(FILE *fp, double *data_points, char *line, int *n, int *dim) {
     void set(double *, int, int, int, double);
     char *p;
+    long bOfFile;
     int size, i, j;
 
-    size = 50 * dim;
+    bOfFile = ftell(fp);/*save the address of the beginning of the file */
+    *n = num_of_lines(fp);
+    fseek(fp, bOfFile, SEEK_SET);/*set the file position back to the beginning */
+    *dim = num_of_columns(fp);
+    fseek(fp, bOfFile, SEEK_SET);/*set the file position back to the beginning */
+
+
+    size = 50 * (*dim);
     for (i = 0; i < n; i++) {
 
         /* p is a pointer to a beginning of a line in the file */
         p = fgets(line, size, fp);
 
-        for (j = 0; j < dim; j++) {
+        for (j = 0; j < *dim; j++) {
 
             /* extract double  form the line */
-            set(data_points, i, j, dim, strtod(p, &p));
+            set(data_points, i, j, *dim, strtod(p, &p));
 
             p += 1; /* skip comma */
         }
@@ -426,45 +434,36 @@ int num_of_columns(FILE *fp) {
 }
 
 /**
- * Prints matrix in the template required,
- * if row == -1 that means mat is an array containing the diagonal elements
- * of the diagonal matrix to print
+ * Prints matrix in the template required
  */
 void print_matrix(double *mat, int row, int col) {
-    int i, j, diag = 0;
-    double item;
+    int i, j, dag = 0;
     double get(double *, int, int, int);
     if (row == -1) {
-        diag = 1;
+        dag = 1;
         row = col;
     }
 
     for (i = 0; i < row; i++) {
-        for (j = 0; j < col ; j++) {
-            if (diag == 1) {
-                item = mat[i];
-                if (i == j && fabs(item) >= 0.0001) {
-                    printf("%0.4f", item);
+        for (j = 0; j < col - 1; j++) {
+            if (dag == 1) {
+                if (i == j) {
+                    printf("%0.4f,", mat[i]);
                 } else {
-                    printf("%0.4f", 0.0);
+                    printf("%0.4f,", 0.0);
                 }
             } else {
-                item = get(mat, i, j, col);
-                if(fabs(item) >= 0.0001){
-                    printf("%0.4f", item);
-                } else {
-                    printf("%0.4f", 0.0);
-                }
-            }
-
-            /*adding comma when needed*/
-            if (j < col-1 ){
-                printf(",");
+                printf("%0.4f,", get(mat, i, j, col));
             }
         }
-        /*adding line break when needed*/
-        if (i < row-1){
-            printf("\n");
+        if (dag == 1) {
+            if (i == j) {
+                printf("%0.4f\n", mat[i]);
+            } else {
+                printf("%0.4f\n", 0.0);
+            }
+        } else {
+            printf("%0.4f\n", get(mat, i, col - 1, col));
         }
     }
 }
@@ -834,39 +833,30 @@ void copy_rows(double* result_mat, double* mat_to_copy, int last_row_to_copy, in
 
 int main(int argc, char *argv[]) {
     void print_matrix(double *, int, int);
-    void read_data(FILE *, double *, char *, int, int);
+    void read_data(FILE *, double *, char *, int *, int *);
     void copy_rows(double*, double*, int, int, int);
     int kmeans(int, double *, double *, double *, int, int);
     double *target_matrix, *data_points, *centroids, *util, *transform_points,
             *wam(double *, int, int), *lnorm(double *, int, int), *ddg(double *, int, int),
             *spk(double *, int, int, int *), *jacobi(double *, int);
     Goal get_enum(char*), goal;
-    int dim, k, n, rows = 0, cols = 0;
+    int dim=0, k, n=0, rows, cols, i, j;
     FILE *f;
-    long bOfFile;
     char *line;
 
     if (argc != 4) {
         printf("invalid input");
         return 1;
     }
-
     /* reading arguments*/
     k = strtol(argv[1], NULL, 10);
     goal = get_enum(argv[2]);
     f = fopen(argv[3], "r");
-    bOfFile = ftell(f);/*save the address of the beginning of the file */
-    n = num_of_lines(f);
-    fseek(f, bOfFile, SEEK_SET);/*set the file position back to the beginning */
-    dim = num_of_columns(f);
-    fseek(f, bOfFile, SEEK_SET);/*set the file position back to the beginning */
     line = malloc(sizeof(char) * (30 * dim));
-
     /* build matrix that contains all the points */
     data_points = malloc(sizeof(double) * dim * n);
-    read_data(f, data_points, line, n, dim);
+    read_data(f, data_points, line, &n, &dim);
     fclose(f);
-
     /*calculate the goal matrix*/
     switch (goal){
         case WAM:
@@ -895,16 +885,13 @@ int main(int argc, char *argv[]) {
             cols = k;
             break;
     };
-
     free(line);
     free(data_points);
-
     if (goal != SPK) {
         print_matrix(target_matrix, rows, cols);
         free(target_matrix);
         return 0;
     }
-
     transform_points = malloc(sizeof(double) * n * (k + 1));
     centroids = malloc(sizeof(double) * k * k);
     util = malloc(sizeof(double) * k * (k + 1));
