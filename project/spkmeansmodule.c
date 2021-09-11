@@ -29,7 +29,7 @@ static int pyMat_to_C_array(PyObject* pyMat, double* mat, int dim){
         for (j = 0; j < m; j++) {
             pyItem = PyList_GetItem(pyVec, j);
             set(mat, i, j, dim, PyFloat_AsDouble(pyItem));
-    
+
             if (get(mat, i, j, dim) == -1 && PyErr_Occurred()){
                 /* float too big to fit in a C double, bail out */
                 printf("An Error Has Occured");
@@ -60,12 +60,13 @@ static PyObject* c_array_to_pyMat(double* mat, int n, int m){
 
 static PyObject *calc_transformation_matrix(int k, char *goal_string, PyObject *pyData_points, int dim, int n){
     double *data_points,*target_matrix;
+    target_matrix=0;
     Goal get_enum(char*);
-    int rows ,cols;
+    int rows = n ,cols = k;
     PyObject *pymat;
 
     data_points = malloc(sizeof(double) * n * dim);
-    
+
     /*convert python mat to c array*/
     pyMat_to_C_array(pyData_points, data_points, dim);
 
@@ -99,9 +100,10 @@ static PyObject *calc_transformation_matrix(int k, char *goal_string, PyObject *
     };
 
     pymat = c_array_to_pyMat(target_matrix, rows, cols);
+    target_matrix=0;
     free(target_matrix);
-    
-    return pymat; 
+
+    return pymat;
 }
 
 static PyObject *calc_transformation_matrix_capi(PyObject *self, PyObject* args){
