@@ -441,36 +441,45 @@ int num_of_columns(FILE *fp) {
 }
 
 /**
- * Prints matrix in the template required
+ * Prints matrix in the template required,
+ * if row == -1 that means mat is an array containing the diagonal elements
+ * of the diagonal matrix to print
  */
 void print_matrix(double *mat, int row, int col) {
-    int i, j, dag = 0;
+    int i, j, diag = 0;
+    double item;
     double get(double *, int, int, int);
     if (row == -1) {
-        dag = 1;
+        diag = 1;
         row = col;
     }
 
     for (i = 0; i < row; i++) {
-        for (j = 0; j < col - 1; j++) {
-            if (dag == 1) {
-                if (i == j) {
-                    printf("%0.4f,", mat[i]);
+        for (j = 0; j < col ; j++) {
+            if (diag == 1) {
+                item = mat[i];
+                if (i == j && fabs(item) >= 0.0001) {
+                    printf("%0.4f", item);
                 } else {
-                    printf("%0.4f,", 0.0);
+                    printf("%0.4f", 0.0);
                 }
             } else {
-                printf("%0.4f,", get(mat, i, j, col));
+                item = get(mat, i, j, col);
+                if(fabs(item) >= 0.0001){
+                    printf("%0.4f", item);
+                } else {
+                    printf("%0.4f", 0.0);
+                }
+            }
+
+            /*adding comma when needed*/
+            if (j < col-1 ){
+                printf(",");
             }
         }
-        if (dag == 1) {
-            if (i == j) {
-                printf("%0.4f\n", mat[i]);
-            } else {
-                printf("%0.4f\n", 0.0);
-            }
-        } else {
-            printf("%0.4f\n", get(mat, i, col - 1, col));
+        /*adding line break when needed*/
+        if (i < row-1){
+            printf("\n");
         }
     }
 }
