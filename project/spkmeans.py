@@ -69,7 +69,7 @@ def main():
     args = sys.argv
     # reading arguments
     if len(args) != 4:
-        print("INPUT ERROR:\nthe number of argument is incorrect")
+        print(”Invalid Input!”)
         return 1
     k, goal, file = args[1], args[2], args[3]
     try:
@@ -81,10 +81,7 @@ def main():
     datapoints_table = pd.read_csv(file, header=None)
     datapoints_matrix = datapoints_table.values.tolist()
 
-    if len(datapoints_matrix) <= k:
-        print(f"INPUT ERROR:\nthere are less or equal to {k} data points")
-        return False
-
+    
     mat = kmeans.calc_transformation_matrix(k, goal, datapoints_matrix, len(datapoints_matrix[0]),
                                            len(datapoints_matrix))
 
@@ -99,8 +96,8 @@ def main():
     if k == 0:
         k = len(mat[0])
 
-    if k <= 0:
-        print("INPUT ERROR:\nk can't be <= 0")
+    if k <= 0 or k >= n:
+        print(”Invalid Input!”)
         return 1
 
     centroids_indexes = Kmeans_pp(mat, k)
