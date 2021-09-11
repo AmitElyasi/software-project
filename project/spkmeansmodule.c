@@ -68,7 +68,7 @@ static PyObject *calc_transformation_matrix(int k, char *goal_string, PyObject *
     data_points = malloc(sizeof(double) * n * dim);
     if(data_points == NULL){
         printf("An Error Has Occured");
-        exit();
+        exit(1);
     }
 
     /*convert python mat to c array*/
@@ -133,7 +133,7 @@ static PyObject *fit_c(int k, PyObject *pyData_points, PyObject *pyCentroid, int
     utl = malloc(sizeof(double) * (k * (k+1)));
     if(data_points == NULL || centroid == NULL || utl == NULL){
         printf("An Error Has Occured");
-        exit();
+        exit(1);
     }
 
     /*convert python lists : pyData_points and pyCentroid to c arrays*/
