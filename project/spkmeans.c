@@ -14,10 +14,15 @@ const int MAX_ITER = 300;
  */
 int calc_eigenvalue_gap(double *mat, int *sorted_eigenvalues_indexes, int n) {
     double *deltas;
-    double get(double *, int, int, int);
-    int i, index, next_index, half_n, max = 0, result = 0;
+    double get(double *, int, int, int), max = 0;
+    int i, index, next_index, half_n, result = 0;
 
     deltas = malloc(sizeof(double) * n);
+    if(deltas == NULL){
+        printf("An Error Has Occured");
+        exit();
+    }
+
     for (i = 0; i < n - 1; i++) {
         index = sorted_eigenvalues_indexes[i];
         next_index = sorted_eigenvalues_indexes[i + 1];
@@ -72,10 +77,10 @@ void jacobi_algorithm_for_eigenvalues(double *A, double *V, int n) {
         a_ii = get(A, row, row, n);
         a_jj = get(A, col, col, n);
         a_ij = get(A, row, col, n);
-        set(A, row, row, n, (c * c) * a_ii + (s * s) * a_jj - 2 * s * c * a_ij);
-        set(A, col, col, n, pow(s, 2) * a_ii + (c * c) * a_jj + 2 * s * c * a_ij);
-        set(A, row, col, n, ((c * c) - (s * s)) * a_ij + s * c * (a_ii - a_jj));
-        set(A, col, row, n, ((c * c) - (s * s)) * a_ij + s * c * (a_ii - a_jj));
+        set(A, row, row, n, ((c * c) * a_ii + (s * s) * a_jj - 2 * s * c * a_ij));
+        set(A, col, col, n, ((s * s) * a_ii + (c * c) * a_jj + 2 * s * c * a_ij));
+        set(A, row, col, n, (((c * c) - (s * s)) * a_ij + s * c * (a_ii - a_jj)));
+        set(A, col, row, n, (((c * c) - (s * s)) * a_ij + s * c * (a_ii - a_jj)));
 
         off_of_Atag = calc_off_square(A, n);
 
@@ -173,7 +178,7 @@ void calc_normalized_laplacian(double *normalized_laplacian, double *diagonal_ma
 /**
  * given a square matrix (mat), sets row and col to be
  * the indexes of the off-diagonal largest absolute value
- * */
+ */
 void indexes_of_max_off_diag(double *mat, int *row, int *col, int dim) {
     double max = 0, val = 0, get(double *, int, int, int);
     int i, j;
@@ -181,7 +186,7 @@ void indexes_of_max_off_diag(double *mat, int *row, int *col, int dim) {
     for (i = 0; i < dim; i++) {
         for (j = i + 1; j < dim; j++) {
             val = get(mat, i, j, dim);
-            if (i != j && fabs(val) > max) {
+            if (fabs(val) > max) {
                 max = fabs(val);
                 *row = i;
                 *col = j;
@@ -200,7 +205,7 @@ double get_t(double *mat, int i, int j, int dim) {
     double theta, t, get(double *, int, int, int);
 
     theta = (get(mat, j, j, dim) - get(mat, i, i, dim)) / (2 * get(mat, i, j, dim));
-    t = 1 / (abs(theta) + sqrt(pow(theta, 2) + 1));
+    t = 1 / (fabs(theta) + sqrt(pow(theta, 2) + 1));
     if (theta < 0) {
         t = (-1) * t;
     }
@@ -318,9 +323,17 @@ void stable(double *arr, int *indexes, int dim) {
     int low = 0, high = 1;
 
     double_indexes = malloc(sizeof(double) * (dim));
+    if(double_indexes == NULL){
+        printf("An Error Has Occured");
+        exit();
+    }
     arr_int_to_double(double_indexes, indexes, dim);
 
     ordered_ints = malloc(sizeof(int) * (dim));
+    if(ordered_ints == NULL){
+        printf("An Error Has Occured");
+        exit();
+    }
     fill_ordered_ints(ordered_ints, dim);
     if (dim <= 1) {
         return;
@@ -385,8 +398,15 @@ double * read_data(FILE *fp, int *n, int *dim) {
     fseek(fp, bOfFile, SEEK_SET);/*set the file position back to the beginning */
 
     line = malloc(sizeof(char) * (30 * (*dim)));
+    if(line == NULL){
+        printf("An Error Has Occured");
+        exit();
+    }
     data_points = malloc(sizeof(double) * (*dim) * (*n));
-
+    if(data_points == NULL){
+        printf("An Error Has Occured");
+        exit();
+    }
     size = 50 * (*dim);
     for (i = 0; i < *n; i++) {
 
@@ -458,14 +478,14 @@ void print_matrix(double *mat, int row, int col) {
         for (j = 0; j < col ; j++) {
             if (diag == 1) {
                 item = mat[i];
-                if (i == j && fabs(item) >= 0.0001) {
+                if (i == j && fabs(item) >= 0.00005) {
                     printf("%0.4f", item);
                 } else {
                     printf("%0.4f", 0.0);
                 }
             } else {
                 item = get(mat, i, j, col);
-                if(fabs(item) >= 0.0001){
+                if(fabs(item) >= 0.00005){
                     printf("%0.4f", item);
                 } else {
                     printf("%0.4f", 0.0);
@@ -705,6 +725,10 @@ double *wam(double *data_points, int n, int dim) {
     double *target_matrix;
 
     target_matrix = malloc(sizeof(double) * n * n);
+    if(target_matrix == NULL){
+        printf("An Error Has Occured");
+        exit();
+    }
     form_weighted_adj_mat(target_matrix, data_points, dim, n);
 
     return target_matrix;
@@ -718,6 +742,10 @@ double *ddg(double *data_points, int n, int dim) {
     double *target_diagonal, *weighted_adj_mat, *wam(double *, int, int);
 
     target_diagonal = malloc(sizeof(double) * n);
+    if(target_diagonal == NULL){
+        printf("An Error Has Occured");
+        exit();
+    }
     weighted_adj_mat = wam(data_points, n, dim);
     form_diagonal_mat(target_diagonal, weighted_adj_mat, n);
 
@@ -738,7 +766,10 @@ double *lnorm(double *data_points, int n, int dim) {
     target_matrix = malloc(sizeof(double) * n * n);
     weighted_adj_mat = malloc(sizeof(double) * n * n);
     diagonal_mat = malloc(sizeof(double) * n);
-
+    if(target_matrix == NULL || weighted_adj_mat == NULL || diagonal_mat == NULL){
+        printf("An Error Has Occured");
+        exit();
+    }
     form_weighted_adj_mat(weighted_adj_mat, data_points, dim, n);
     form_diagonal_mat(diagonal_mat, weighted_adj_mat, n);
     calc_normalized_laplacian(target_matrix, diagonal_mat, weighted_adj_mat, n);
@@ -762,6 +793,10 @@ double *jacobi(double *data_points, int n) {
 
     target_matrix = malloc(sizeof(double) * n * (n + 1));
     V = malloc(sizeof(double) * n * n);
+    if(target_matrix == NULL || V == NULL){
+        printf("An Error Has Occured");
+        exit();
+    }
     form_unit_matrix(V, n);
     jacobi_algorithm_for_eigenvalues(data_points, V, n);
 
@@ -794,6 +829,10 @@ double *spk(double *data_points, int n, int dim, int *k) {
     V = malloc(sizeof(double) * n * n);
     indexes = malloc(sizeof(int) * n);
     eigenvalues = malloc(sizeof(double) * n);
+    if(V == NULL || indexes == NULL || eigenvalues == NULL){
+        printf("An Error Has Occured");
+        exit();
+    }
 
     normalized_laplacian = lnorm(data_points, n, dim);
     form_unit_matrix(V, n);
@@ -804,6 +843,10 @@ double *spk(double *data_points, int n, int dim, int *k) {
         *k = calc_eigenvalue_gap(normalized_laplacian, indexes, n);
     }
     target_matrix = malloc(sizeof(double) * n * (*k));
+    if(target_matrix == NULL){
+        printf("An Error Has Occured");
+        exit();
+    }
     normalized_k_eigenvectors(V, indexes, n, *k, target_matrix);
 
     free(normalized_laplacian);
@@ -861,7 +904,7 @@ int main(int argc, char *argv[]) {
     target_matrix = 0;
 
     if (argc != 4) {
-        printf("invalid input");
+        printf("invalid input!");
         return 1;
     }
     /* reading arguments*/
@@ -902,6 +945,10 @@ int main(int argc, char *argv[]) {
             target_matrix = spk(data_points, n, dim, &k);
             rows = k;
             cols = k;
+            if (k < n) {
+                printf("invalid input!");
+                return 1;
+            }
             break;
     };
 
@@ -914,6 +961,11 @@ int main(int argc, char *argv[]) {
     transform_points = malloc(sizeof(double) * n * (k + 1));
     centroids = malloc(sizeof(double) * k * k);
     util = malloc(sizeof(double) * k * (k + 1));
+    if(transform_points == NULL || centroids == NULL || util == NULL){
+        printf("An Error Has Occured");
+        exit();
+    }
+
     copy_rows(centroids, target_matrix ,k , k, k);
     copy_rows(transform_points, target_matrix ,n ,k+1 , k);
 

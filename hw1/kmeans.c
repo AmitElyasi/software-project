@@ -331,6 +331,10 @@ int main( int argc, char* argv[]) {
     centroids = malloc(sizeof(float) * (dim*k));
     /* build matrix that use for calclations */;
     utl = malloc(sizeof(float) * ((dim+1)*k));
+    if(line == NULL || data_points == NULL || centroids == NULL){
+        printf("An Error Has Occured");
+        exit();
+    }
     read_data(stdin, data_points, line, n, dim);
     kmeans(k, data_points, centroids, utl, max_iter, dim, n);
     print_centroids(centroids, k, dim);
