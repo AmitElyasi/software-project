@@ -42,7 +42,7 @@ def print_mat(mat):
         if i > 0:
             print("\n", end="")
         for j in range(len(mat[0])):
-            if abs(mat[i][j]) >= 0.0001:
+            if abs(mat[i][j]) >= 0.00005:
                 print(format(mat[i][j], ".4f"), end="")
             else:
                 print("0.0000", end="")
@@ -56,7 +56,7 @@ def print_diag(diag):
         if i > 0:
             print("\n", end="")
         for j in range(len(diag)):
-            if (i == j) and (abs(diag[i]) >= 0.0001):
+            if (i == j) and (abs(diag[i]) >= 0.00005):
                 print(format(diag[i], ".4f"), end="")
             else:
                 print("0.0000", end="")
@@ -67,7 +67,6 @@ def print_diag(diag):
 def main():
     np.random.seed(0)
     args = sys.argv
-
     # reading arguments
     if len(args) != 4:
         print("INPUT ERROR:\nthe number of argument is incorrect")
