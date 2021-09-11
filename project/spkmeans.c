@@ -945,7 +945,7 @@ int main(int argc, char *argv[]) {
             target_matrix = spk(data_points, n, dim, &k);
             rows = k;
             cols = k;
-            if (k < n) {
+            if (k <= 0 || k >= n) {
                 printf("invalid input!");
                 return 1;
             }
