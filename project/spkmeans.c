@@ -36,6 +36,7 @@ int calc_eigenvalue_gap(double *mat, int *sorted_eigenvalues_indexes, int n) {
             result = i + 1;
         }
     }
+    free(deltas);
     return result;
 }
 
@@ -842,6 +843,10 @@ double *spk(double *data_points, int n, int dim, int *k) {
     if (*k == 0) {
         *k = calc_eigenvalue_gap(normalized_laplacian, indexes, n);
     }
+    if (*k <= 0 || *k >= n) {
+        printf("invalid input!");
+        exit(1);
+    }
     target_matrix = malloc(sizeof(double) * n * (*k));
     if(target_matrix == NULL){
         printf("An Error Has Occured");
@@ -945,10 +950,6 @@ int main(int argc, char *argv[]) {
             target_matrix = spk(data_points, n, dim, &k);
             rows = k;
             cols = k;
-            if (k <= 0 || k >= n) {
-                printf("invalid input!");
-                return 1;
-            }
             break;
     };
 
@@ -973,7 +974,6 @@ int main(int argc, char *argv[]) {
     print_matrix(centroids, k, k);
 
     /* free the memory used */
-    target_matrix=0;
     free(target_matrix);
     free(transform_points);
     free(centroids);
